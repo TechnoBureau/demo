@@ -27,8 +27,8 @@ jobs:
 
     steps:
 
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      # - name: Checkout repository
+      #   uses: actions/checkout@v3
 
       - name: Adding markdown1
         run: echo '# Hello world! 🚀' >> $GITHUB_STEP_SUMMARY
@@ -87,14 +87,14 @@ jobs:
       # # Build and push Docker image with Buildx (don't push on PR)
       # # https://github.com/docker/build-push-action
       # - name: Build and push Docker image
-        id: build-and-push
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          file: ${{github.workflow}}.Dockerfile
-          platforms: linux/amd64,linux/arm64
+        # id: build-and-push
+        # uses: docker/build-push-action@v4
+        # with:
+        #   context: .
+        #   push: ${{ github.event_name != 'pull_request' }}
+        #   tags: ${{ steps.meta.outputs.tags }}
+        #   labels: ${{ steps.meta.outputs.labels }}
+        #   cache-from: type=gha
+        #   cache-to: type=gha,mode=max
+        #   file: ${{github.workflow}}.Dockerfile
+        #   platforms: linux/amd64,linux/arm64
