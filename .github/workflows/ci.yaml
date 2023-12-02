@@ -99,7 +99,7 @@ jobs:
       id: fetch_release
       run: |
         TAG_NAME=$(echo "${{ needs.initialize.outputs.version }}" | sed 's/^v//')
-        RELEASE_ID=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${TAG_NAME}" | jq -r '.id')
+        RELEASE_ID=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${TAG_NAME}" | jq -r '.id')
         echo "RELEASE_ID=${RELEASE_ID}" >> $GITHUB_OUTPUT
 
     - name: Append Summary to Release
