@@ -25,76 +25,39 @@ jobs:
       # with sigstore/fulcio when running outside of PRs.
       id-token: write
 
+    # steps:
+
+    #   # - name: Checkout repository
+    #   #   uses: actions/checkout@v3
+
+    #   - name: Adding markdown1
+    #     run: echo '# Hello world! 🚀' >> $GITHUB_STEP_SUMMARY
+
+    #   - name: Adding markdown2
+    #     run: echo '# Hello world2! 🚀\n' >> $GITHUB_STEP_SUMMARY
+  GenerateImageReleaseReport:
+    name: Generate image release report
+    if: ${{ always() }}
+    # needs: [ Initialize, ReleaseImages ]
+    runs-on: [ ubuntu-latest ]
     steps:
+      - name: Checkout
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab #v3.5.2
 
-      # - name: Checkout repository
-      #   uses: actions/checkout@v3
+      - name: Generate images release report
+        run: |
+          echo '# Hello world! 🚀' >> $GITHUB_STEP_SUMMARY
 
-      - name: Adding markdown1
-        run: echo '# Hello world! 🚀' >> $GITHUB_STEP_SUMMARY
+  GeneratePackagesReleaseReport:
+    name: Generate packages release report
+    if: ${{ always() }}
+    # needs: [ Initialize, ReleasePackages ]
+    runs-on: [ ubuntu-latest ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab #v3.5.2
 
-      - name: Adding markdown2
-        run: echo '# Hello world2! 🚀\n' >> $GITHUB_STEP_SUMMARY
+      - name: Generate pakages release report
+        run: |
+          echo '# Hello world! 🚀' >> $GITHUB_STEP_SUMMARY
 
-      # -
-      #   # Add support for more platforms with QEMU (optional)
-      #   # https://github.com/docker/setup-qemu-action
-      #   name: Set up QEMU
-      #   uses: docker/setup-qemu-action@v2
-      #   with:
-      #     platforms: 'arm64,arm'
-
-      # # Workaround: https://github.com/docker/build-push-action/issues/461
-      # - name: Setup Docker buildx
-      #   uses: docker/setup-buildx-action@v2
-      #   #platforms: linux/amd64,linux/arm64
-
-      # - name: Add SHORT_SHA env property with commit short sha
-      #   run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
-
-      # # Login against a Docker registry except on PR
-      # # https://github.com/docker/login-action
-      # - name: Log into registry ${{ env.REGISTRY }}
-      #   if: github.event_name != 'pull_request'
-      #   uses: docker/login-action@v2
-      #   with:
-      #     registry: ${{ env.REGISTRY }}
-      #     username: ${{ github.actor }}
-      #     password: ${{ secrets.GITHUB_TOKEN }}
-
-      # # Extract metadata (tags, labels) for Docker
-      # # https://github.com/docker/metadata-action
-      # - name: Extract Docker metadata
-      #   id: meta
-      #   uses: docker/metadata-action@v4
-      #   with:
-      #     images: ${{ env.REGISTRY }}/${{github.repository_owner}}/${{github.workflow}}
-      #     flavor: latest=true
-      #     tags: |
-      #       type=raw,enable=true,priority=200,prefix=,suffix=,value=${{ env.MAJOR }}.${{ env.MINOR }}.${{ github.run_number }}
-      #       type=raw,enable=true,priority=300,prefix=,suffix=,value=${{ env.MAJOR }}.${{ env.MINOR }}.${{ env.SHORT_SHA }}
-      #       type=ref,event=branch
-      #       type=ref,event=tag
-      #     labels: |
-      #       maintainer=${{github.repository_owner}}
-      #       name=${{github.repository_owner}}/${{github.workflow}}
-      #       io.k8s.display-name=${{github.repository_owner}}/${{github.workflow}}
-      #       version=${{ env.MAJOR }}.${{ env.MINOR }}
-      #       org.opencontainers.image.title=${{github.repository_owner}}/${{github.workflow}}
-      #       org.opencontainers.image.version=${{ env.MAJOR }}.${{ env.MINOR }}.${{ github.run_number }}
-      #       org.opencontainers.image.description=${{github.repository_owner}}/${{github.workflow}}
-      #       org.opencontainers.image.revision=${{ env.SHORT_SHA }}
-      # # Build and push Docker image with Buildx (don't push on PR)
-      # # https://github.com/docker/build-push-action
-      # - name: Build and push Docker image
-        # id: build-and-push
-        # uses: docker/build-push-action@v4
-        # with:
-        #   context: .
-        #   push: ${{ github.event_name != 'pull_request' }}
-        #   tags: ${{ steps.meta.outputs.tags }}
-        #   labels: ${{ steps.meta.outputs.labels }}
-        #   cache-from: type=gha
-        #   cache-to: type=gha,mode=max
-        #   file: ${{github.workflow}}.Dockerfile
-        #   platforms: linux/amd64,linux/arm64
