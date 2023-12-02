@@ -90,22 +90,17 @@ jobs:
           done
           echo -e "$releaseReport" >> $GITHUB_STEP_SUMMARY
           echo -e "\n" >> $GITHUB_STEP_SUMMARY
+      - name: Fetch Release
+        id: fetch_release
+        run: |
+          TAG_NAME=$(echo "${{ needs.initialize.outputs.version }}" | sed 's/^v//')
+          RELEASE_ID=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${TAG_NAME}" | jq -r '.id')
+          echo "RELEASE_ID=${RELEASE_ID}" >> $GITHUB_OUTPUT
 
-  append-to-release:
-    runs-on: ubuntu-latest
-    needs: [ initialize,GenerateImageReleaseReport ]
-    steps:
-    - name: Fetch Release
-      id: fetch_release
-      run: |
-        TAG_NAME=$(echo "${{ needs.initialize.outputs.version }}" | sed 's/^v//')
-        RELEASE_ID=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${TAG_NAME}" | jq -r '.id')
-        echo "RELEASE_ID=${RELEASE_ID}" >> $GITHUB_OUTPUT
-
-    - name: Append Summary to Release
-      run: |
-        RELEASE_ID=${{ steps.fetch_release.outputs.RELEASE_ID }}
-        curl -X PATCH -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -d '{"body": "'"${GITHUB_STEP_SUMMARY}"'"}' "https://api.github.com/repos/${{ github.repository }}/releases/${RELEASE_ID}"
+      - name: Append Summary to Release
+        run: |
+          RELEASE_ID=${{ steps.fetch_release.outputs.RELEASE_ID }}
+          curl -X PATCH -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -d '{"body": "'"${GITHUB_STEP_SUMMARY}"'"}' "https://api.github.com/repos/${{ github.repository }}/releases/${RELEASE_ID}"
 
   # GeneratePackagesReleaseReport:
   #   name: Generate packages release report
