@@ -51,7 +51,7 @@ jobs:
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             export VERSION="${{ env.MAJOR }}.${{ env.MINOR }}.${{ env.FIX }}"
-          eif [[ "${{ github.event_name }}" == "release" ]]; then
+          elif [[ "${{ github.event_name }}" == "release" ]]; then
             # Extract version from the tag and remove the 'v' prefix
             export VERSION=$(echo "${{ github.ref }}" | sed 's/refs\/tags\/v//')
           else
