@@ -8,6 +8,11 @@ on:
     tags: [ 'v*.*.*' ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Custom version (optional)'
+        required: false
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -49,11 +54,14 @@ jobs:
       - name: Get Version
         id: get_version
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            # Use the manually provided version
+            export VERSION=${{ github.event.inputs.version }}
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             export VERSION="${{ env.MAJOR }}.${{ env.MINOR }}.${{ env.FIX }}"
           elif [[ "${{ github.ref_type }}" == "tag" ]]; then
             # Extract version from the tag and remove the 'v' prefix
-            export VERSION=$(echo "${{ github.ref_name }}" | sed 's/refs\/tags\/v//')
+            export VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
           else
             export VERSION=${{ github.ref_name }}
           fi
