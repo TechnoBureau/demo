@@ -42,7 +42,7 @@ jobs:
                   fi
               done
               echo $result
-              echo "::set-output name=images::{\"image\":[${result}]}"
+              echo "::set-output name=images::$result"
       # - name: Prepare Git credentials script
       #   run: echo 'echo ${GITHUB_TOKEN}' > $GIT_ASKPASS && chmod +x $GIT_ASKPASS
 
@@ -57,12 +57,13 @@ jobs:
 
       - name: Generate images release report
         run: |
-          images=$(echo ${{ needs.initialize.outputs.images }} | jq -r '.image[]')
+          images=${{ needs.initialize.outputs.images }}
           releaseReport="# 🚀 Released Packages $RELEASE 🚀\n"
-          releaseReport+="| 📦 Package | Internal Repository Location | Public Repositoriy Location |\n"
+          releaseReport+="| 📦 Package | Internal Repository Location | Public Repository Location |\n"
           releaseReport+="| :-: | :-: | :-: |"
-          for image in $images; do
-          releaseReport+="\n|$image|1.0.0|1.0.0|"
+          IFS=',' read -ra imageArray <<< "$images"
+          for image in "${imageArray[@]}"; do
+            releaseReport+="\n|$image|1.0.0|1.0.0|"
           done
           echo -e "$releaseReport" >> $GITHUB_STEP_SUMMARY
           echo -e "\n" >> $GITHUB_STEP_SUMMARY
