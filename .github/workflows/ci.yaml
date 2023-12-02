@@ -75,9 +75,6 @@ jobs:
     needs: [ initialize ]
     runs-on: [ ubuntu-latest ]
     steps:
-      - name: Checkout
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab #v3.5.2
-
       - name: Generate images release report
         id: generate_release
         run: |
@@ -97,27 +94,4 @@ jobs:
           echo "RELEASE_ID=${RELEASE_ID}" >> $GITHUB_OUTPUT
 
           curl -X PATCH -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -d '{"body": "'"$releaseReport"'"}' "https://api.github.com/repos/${{ github.repository }}/releases/${RELEASE_ID}"
-
-      # - name: Fetch Release
-      #   id: fetch_release
-      #   run: |
-      #     RELEASE_ID=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ needs.initialize.outputs.version }}" | jq -r '.id')
-      #     echo "RELEASE_ID=${RELEASE_ID}" >> $GITHUB_OUTPUT
-
-      # - name: Append Summary to Release
-      #   run: |
-      #     curl -X PATCH -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -d '{"body": "'"${{ steps.generate_release.outputs.RELEASE_REPORT }}"'"}' "https://api.github.com/repos/${{ github.repository }}/releases/${{ steps.fetch_release.outputs.RELEASE_ID }}"
-
-  # GeneratePackagesReleaseReport:
-  #   name: Generate packages release report
-  #   if: ${{ always() }}
-  #   # needs: [ Initialize, ReleasePackages ]
-  #   runs-on: [ ubuntu-latest ]
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab #v3.5.2
-
-  #     - name: Generate pakages release report
-  #       run: |
-  #         echo '# Hello world! 🚀' >> $GITHUB_STEP_SUMMARY
 
