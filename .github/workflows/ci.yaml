@@ -100,7 +100,8 @@ jobs:
       - name: Append Summary to Release
         run: |
           RELEASE_ID=${{ steps.fetch_release.outputs.RELEASE_ID }}
-          RELEASE_REPORT=$(cat $GITHUB_STEP_SUMMARY)
+          RELEASE_REPORT=$(echo $GITHUB_STEP_SUMMARY)
+          echo $GITHUB_STEP_SUMMARY
           curl -X PATCH -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -d '{"body": "'"${RELEASE_REPORT}"'"}' "https://api.github.com/repos/${{ github.repository }}/releases/${RELEASE_ID}"
 
   # GeneratePackagesReleaseReport:
