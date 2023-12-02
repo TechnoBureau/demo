@@ -78,6 +78,7 @@ jobs:
       - name: Generate images release report
         id: generate_release
         run: |
+          ls
           ./scripts/generateImagesReleaseReport.sh
           # images=${{ needs.initialize.outputs.images }}
           # releaseReport="# 🚀 Released Packages $RELEASE 🚀\n"
