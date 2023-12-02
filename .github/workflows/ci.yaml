@@ -57,7 +57,7 @@ jobs:
           else
             export VERSION=${{ github.sha }}
           fi
-          echo "version::${VERSION}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
       # - name: Prepare Git credentials script
       #   run: echo 'echo ${GITHUB_TOKEN}' > $GIT_ASKPASS && chmod +x $GIT_ASKPASS
 
