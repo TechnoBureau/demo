@@ -41,8 +41,9 @@ jobs:
                   fi
                 #fi
               done
-              echo $result
-              echo "::set-output name=images::$result"
+              #echo $result
+              echo "images=$result" >> $GITHUB_OUTPUT
+              #echo "{images}={result}" >> $GITHUB_OUTPUT
       # - name: Prepare Git credentials script
       #   run: echo 'echo ${GITHUB_TOKEN}' > $GIT_ASKPASS && chmod +x $GIT_ASKPASS
 
