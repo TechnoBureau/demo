@@ -26,14 +26,15 @@ jobs:
       id-token: write
 
     steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
       - name: Adding markdown1
         run: echo '# Hello world! 🚀' >> $GITHUB_STEP_SUMMARY
 
       - name: Adding markdown2
         run: echo '# Hello world2! 🚀\n' >> $GITHUB_STEP_SUMMARY
-
-      # - name: Checkout repository
-      #   uses: actions/checkout@v3
 
       # -
       #   # Add support for more platforms with QEMU (optional)
