@@ -16,29 +16,40 @@ env:
   MINOR: 1
 
 jobs:
-  # build:
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: read
-  #     packages: write
-  #     # This is used to complete the identity challenge
-  #     # with sigstore/fulcio when running outside of PRs.
-  #     id-token: write
+  initialize:
+    # The workflow runs on self hosted runner, having docker available
+    runs-on: [ ubuntu-latest ]
+    name: Initialize
+    outputs:
+      images: ${{ steps.identify-images.outputs.images }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.3.4
+        with:
+          submodules: recursive
+      - name: Identify images
+        id: identify-images
+        run: |
+              cd builders
+              for d in * ; do
+                if [ -f "$d/build.sh" ]; then
+                      if [ -z $result ]
+                        then
+                           result="\"$d\""
+                        else
+                           result+=",\"$d\""
+                      fi
+                  fi
+              done
+              echo $result
+              echo "::set-output name=images::{\"image\":[${result}]}"
+      - name: Prepare Git credentials script
+        run: echo 'echo ${GITHUB_TOKEN}' > $GIT_ASKPASS && chmod +x $GIT_ASKPASS
 
-    # steps:
-
-    #   # - name: Checkout repository
-    #   #   uses: actions/checkout@v3
-
-    #   - name: Adding markdown1
-    #     run: echo '# Hello world! 🚀' >> $GITHUB_STEP_SUMMARY
-
-    #   - name: Adding markdown2
-    #     run: echo '# Hello world2! 🚀\n' >> $GITHUB_STEP_SUMMARY
   GenerateImageReleaseReport:
     name: Generate image release report
     if: ${{ always() }}
-    # needs: [ Initialize, ReleaseImages ]
+    needs: [ initialize ]
     runs-on: [ ubuntu-latest ]
     steps:
       - name: Checkout
@@ -46,18 +57,27 @@ jobs:
 
       - name: Generate images release report
         run: |
-          echo '# Hello world! 🚀' >> $GITHUB_STEP_SUMMARY
+          images=$(echo ${{ needs.initialize.outputs.images }} | jq -r '.image[]')
+          releaseReport="# 🚀 Released Packages $RELEASE 🚀\n"
+          releaseReport+="| 📦 Package | Internal Repository Location | Public Repositoriy Location |\n"
+          releaseReport+="| :-: | :-: | :-: |"
+          for image in $images; do
+          releaseReport+= "| $image | 1.0.0 |"  # Replace "1.0.0" with the actual version
+          releaseReport+="\n|$image|1.0.0|1.0.0|"
+          done
+          echo -e "$releaseReport" >> $GITHUB_STEP_SUMMARY
+          echo -e "\n" >> $GITHUB_STEP_SUMMARY
 
-  GeneratePackagesReleaseReport:
-    name: Generate packages release report
-    if: ${{ always() }}
-    # needs: [ Initialize, ReleasePackages ]
-    runs-on: [ ubuntu-latest ]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab #v3.5.2
+  # GeneratePackagesReleaseReport:
+  #   name: Generate packages release report
+  #   if: ${{ always() }}
+  #   # needs: [ Initialize, ReleasePackages ]
+  #   runs-on: [ ubuntu-latest ]
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab #v3.5.2
 
-      - name: Generate pakages release report
-        run: |
-          echo '# Hello world! 🚀' >> $GITHUB_STEP_SUMMARY
+  #     - name: Generate pakages release report
+  #       run: |
+  #         echo '# Hello world! 🚀' >> $GITHUB_STEP_SUMMARY
 
