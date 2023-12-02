@@ -7,7 +7,7 @@ on:
       - main
     # Publish semver tags as releases.
     tags:
-      - 'v*.*.*'
+      - '*.*.*'
   workflow_dispatch:
     inputs:
       version:
@@ -91,21 +91,22 @@ jobs:
           done
           echo -e "$releaseReport" >> $GITHUB_STEP_SUMMARY
           echo -e "\n" >> $GITHUB_STEP_SUMMARY
-          echo "RELEASE_REPORT=$releaseReport" >> $GITHUB_OUTPUT
+          # echo "RELEASE_REPORT=$releaseReport" >> $GITHUB_OUTPUT
 
-      - name: Fetch Release
-        id: fetch_release
-        run: |
-          TAG_NAME=$(echo "${{ needs.initialize.outputs.version }}" | sed 's/^v//')
-          RELEASE_ID=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${TAG_NAME}" | jq -r '.id')
+          RELEASE_ID=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ needs.initialize.outputs.version }}" | jq -r '.id')
           echo "RELEASE_ID=${RELEASE_ID}" >> $GITHUB_OUTPUT
 
-      - name: Append Summary to Release
-        run: |
-          RELEASE_ID=${{ steps.fetch_release.outputs.RELEASE_ID }}
-          RELEASE_REPORT=$(echo ${GITHUB_STEP_SUMMARY})
-          echo "${{ steps.generate_release.outputs.RELEASE_REPORT }}"
-          curl -X PATCH -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -d '{"body": "'"${{ steps.generate_release.outputs.RELEASE_REPORT }}"'"}' "https://api.github.com/repos/${{ github.repository }}/releases/${RELEASE_ID}"
+          curl -X PATCH -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -d '{"body": "'"$releaseReport"'"}' "https://api.github.com/repos/${{ github.repository }}/releases/${RELEASE_ID}"
+
+      # - name: Fetch Release
+      #   id: fetch_release
+      #   run: |
+      #     RELEASE_ID=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ needs.initialize.outputs.version }}" | jq -r '.id')
+      #     echo "RELEASE_ID=${RELEASE_ID}" >> $GITHUB_OUTPUT
+
+      # - name: Append Summary to Release
+      #   run: |
+      #     curl -X PATCH -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -d '{"body": "'"${{ steps.generate_release.outputs.RELEASE_REPORT }}"'"}' "https://api.github.com/repos/${{ github.repository }}/releases/${{ steps.fetch_release.outputs.RELEASE_ID }}"
 
   # GeneratePackagesReleaseReport:
   #   name: Generate packages release report
