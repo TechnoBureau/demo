@@ -139,13 +139,13 @@ jobs:
         id: build-and-push
         uses: docker/build-push-action@v5
         with:
-          context: "./builders/${{ matrix.image }}"
+          context: .
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          file: ${{ matrix.image }}.Dockerfile
+          file: builders/${{ matrix.image }}/${{ matrix.image }}.Dockerfile
           platforms: linux/amd64,linux/arm64
 
   GenerateImageReleaseReport:
