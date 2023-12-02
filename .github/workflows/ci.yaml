@@ -51,11 +51,11 @@ jobs:
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             export VERSION="${{ env.MAJOR }}.${{ env.MINOR }}.${{ env.FIX }}"
-          elif [[ "${{ github.event_name }}" == "release" ]]; then
+          elif [[ "${{ github.ref_type }}" == "tag" ]]; then
             # Extract version from the tag and remove the 'v' prefix
-            export VERSION=$(echo "${{ github.ref }}" | sed 's/refs\/tags\/v//')
+            export VERSION=$(echo "${{ github.ref_name }}" | sed 's/refs\/tags\/v//')
           else
-            export VERSION=${{ github.sha }}
+            export VERSION=${{ github.ref_name }}
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
       # - name: Prepare Git credentials script
