@@ -42,15 +42,14 @@ jobs:
               for d in * ; do
                 #if [ -f "$d/build.sh" ]; then
                   if [ -z $result ]; then
-                    result="$d"
+                    result="\"$d\""
                   else
-                    result="$result,$d"
+                    result+=",\"$d\""
                   fi
                 #fi
               done
-              #echo $result
-              echo "images=$result" >> $GITHUB_OUTPUT
-              #echo "{images}={result}" >> $GITHUB_OUTPUT
+              echo "images=[$result]" >> $GITHUB_OUTPUT
+
       - name: Get Version
         id: get_version
         run: |
