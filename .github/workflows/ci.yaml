@@ -70,6 +70,7 @@ jobs:
 
   BuildImages:
     runs-on: ubuntu-latest
+    if: ${{ success() }}
     needs: [ initialize ]
     permissions:
       contents: read
@@ -138,7 +139,7 @@ jobs:
         id: build-and-push
         uses: docker/build-push-action@v5
         with:
-          context: builders/${{ matrix.image }}
+          context: "{{defaultContext}}:builders/${{ matrix.image }}"
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -150,7 +151,7 @@ jobs:
   GenerateImageReleaseReport:
     name: Generate image release report
     if: ${{ success() }}
-    needs: [ initialize ]
+    needs: [ initialize,BuildImages ]
     runs-on: [ ubuntu-latest ]
     steps:
       - name: Checkout
@@ -162,7 +163,8 @@ jobs:
           releaseReport="# 🚀 Released Packages $RELEASE 🚀\n"
           releaseReport+="| 📦 Package | Internal Repository Location | Public Repository Location |\n"
           releaseReport+="| :-: | :-: | :-: |"
-          IFS=',' read -ra imageArray <<< "$images"
+          #IFS=',' read -ra imageArray <<< "$images"
+          imageArray=($(echo "$images" | jq -r '.image[]'))
           for image in "${imageArray[@]}"; do
             releaseReport+="\n|$image|${{ needs.initialize.outputs.version }}|1.0.0|"
           done
