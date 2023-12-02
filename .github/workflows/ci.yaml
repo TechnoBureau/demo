@@ -69,6 +69,86 @@ jobs:
       # - name: Prepare Git credentials script
       #   run: echo 'echo ${GITHUB_TOKEN}' > $GIT_ASKPASS && chmod +x $GIT_ASKPASS
 
+  BuildImages:
+    runs-on: ubuntu-latest
+    needs: [ initialize ]
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
+
+    strategy:
+      matrix:
+        image: ${{ fromJson(needs.initialize.outputs.images) }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      -
+        # Add support for more platforms with QEMU (optional)
+        # https://github.com/docker/setup-qemu-action
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: 'arm64,arm'
+
+      # Workaround: https://github.com/docker/build-push-action/issues/461
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Add SHORT_SHA env property with commit short sha
+        run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+
+      # Login against a Docker registry except on PR
+      # https://github.com/docker/login-action
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Extract metadata (tags, labels) for Docker
+      # https://github.com/docker/metadata-action
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{github.repository_owner}}/${{ matrix.image }}
+          flavor: latest=true
+          tags: |
+            type=raw,enable=true,priority=200,prefix=,suffix=,value=${{ needs.initialize.outputs.version }}.${{ github.run_number }}
+            type=raw,enable=true,priority=300,prefix=,suffix=,value=${{ needs.initialize.outputs.version }}.${{ env.SHORT_SHA }}
+            type=ref,event=branch
+            type=ref,event=tag
+          labels: |
+            maintainer=${{github.repository_owner}}
+            name=${{github.repository_owner}}/${{ matrix.image }}
+            io.k8s.display-name=${{github.repository_owner}}/${{ matrix.image }}
+            version=${{ needs.initialize.outputs.version }}
+            org.opencontainers.image.title=${{github.repository_owner}}/${{ matrix.image }}
+            org.opencontainers.image.version=${{ needs.initialize.outputs.version }}.${{ github.run_number }}
+            org.opencontainers.image.description=${{github.repository_owner}}/${{ matrix.image }}
+            org.opencontainers.image.revision=${{ env.SHORT_SHA }}
+      # Build and push Docker image with Buildx (don't push on PR)
+      # https://github.com/docker/build-push-action
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v5
+        with:
+          context: builders/${{ matrix.image }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          file: ${{ matrix.image }}.Dockerfile
+          platforms: linux/amd64,linux/arm64
+
   GenerateImageReleaseReport:
     name: Generate image release report
     if: ${{ success() }}
@@ -80,21 +160,20 @@ jobs:
       - name: Generate images release report
         id: generate_release
         run: |
-          ./scripts/generateImagesReleaseReport.sh
-          # images=${{ needs.initialize.outputs.images }}
-          # releaseReport="# 🚀 Released Packages $RELEASE 🚀\n"
-          # releaseReport+="| 📦 Package | Internal Repository Location | Public Repository Location |\n"
-          # releaseReport+="| :-: | :-: | :-: |"
-          # IFS=',' read -ra imageArray <<< "$images"
-          # for image in "${imageArray[@]}"; do
-          #   releaseReport+="\n|$image|${{ needs.initialize.outputs.version }}|1.0.0|"
-          # done
-          # echo -e "$releaseReport" >> $GITHUB_STEP_SUMMARY
-          # echo -e "\n" >> $GITHUB_STEP_SUMMARY
-          # # echo "RELEASE_REPORT=$releaseReport" >> $GITHUB_OUTPUT
+          images=${{ needs.initialize.outputs.images }}
+          releaseReport="# 🚀 Released Packages $RELEASE 🚀\n"
+          releaseReport+="| 📦 Package | Internal Repository Location | Public Repository Location |\n"
+          releaseReport+="| :-: | :-: | :-: |"
+          IFS=',' read -ra imageArray <<< "$images"
+          for image in "${imageArray[@]}"; do
+            releaseReport+="\n|$image|${{ needs.initialize.outputs.version }}|1.0.0|"
+          done
+          echo -e "$releaseReport" >> $GITHUB_STEP_SUMMARY
+          echo -e "\n" >> $GITHUB_STEP_SUMMARY
+          # echo "RELEASE_REPORT=$releaseReport" >> $GITHUB_OUTPUT
 
-          # RELEASE_ID=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ needs.initialize.outputs.version }}" | jq -r '.id')
-          # echo "RELEASE_ID=${RELEASE_ID}" >> $GITHUB_OUTPUT
+          RELEASE_ID=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ needs.initialize.outputs.version }}" | jq -r '.id')
+          echo "RELEASE_ID=${RELEASE_ID}" >> $GITHUB_OUTPUT
 
-          # curl -X PATCH -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -d '{"body": "'"$releaseReport"'"}' "https://api.github.com/repos/${{ github.repository }}/releases/${RELEASE_ID}"
+          curl -X PATCH -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -d '{"body": "'"$releaseReport"'"}' "https://api.github.com/repos/${{ github.repository }}/releases/${RELEASE_ID}"
 
