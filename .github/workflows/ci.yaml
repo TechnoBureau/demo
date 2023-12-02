@@ -43,8 +43,8 @@ jobs:
               done
               echo $result
               echo "::set-output name=images::{\"image\":[${result}]}"
-      - name: Prepare Git credentials script
-        run: echo 'echo ${GITHUB_TOKEN}' > $GIT_ASKPASS && chmod +x $GIT_ASKPASS
+      # - name: Prepare Git credentials script
+      #   run: echo 'echo ${GITHUB_TOKEN}' > $GIT_ASKPASS && chmod +x $GIT_ASKPASS
 
   GenerateImageReleaseReport:
     name: Generate image release report
@@ -62,7 +62,6 @@ jobs:
           releaseReport+="| 📦 Package | Internal Repository Location | Public Repositoriy Location |\n"
           releaseReport+="| :-: | :-: | :-: |"
           for image in $images; do
-          releaseReport+= "| $image | 1.0.0 |"  # Replace "1.0.0" with the actual version
           releaseReport+="\n|$image|1.0.0|1.0.0|"
           done
           echo -e "$releaseReport" >> $GITHUB_STEP_SUMMARY
