@@ -31,15 +31,15 @@ jobs:
         id: identify-images
         run: |
               cd builders
+              result=""
               for d in * ; do
                 if [ -f "$d/build.sh" ]; then
-                      if [ -z $result ]
-                        then
-                           result="\"$d\""
-                        else
-                           result+=",\"$d\""
-                      fi
+                  if [ -z $result ]; then
+                    result="$d"
+                  else
+                    result="$result,$d"
                   fi
+                fi
               done
               echo $result
               echo "::set-output name=images::$result"
