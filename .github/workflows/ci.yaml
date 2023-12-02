@@ -2,12 +2,12 @@ name: Image Build
 on:
   #schedule:
   #  - cron: '31 14 * * *'
-  push:
-    branches:
-      - main
-    # Publish semver tags as releases.
-    tags:
-      - 'v*.*.*'
+  # push:
+  #   branches:
+  #     - main
+  #   # Publish semver tags as releases.
+  #   tags:
+  #     - 'v*.*.*'
   workflow_dispatch:
     inputs:
       version:
