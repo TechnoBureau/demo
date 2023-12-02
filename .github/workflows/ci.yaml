@@ -1,4 +1,4 @@
-name: ubi
+name: Image Build
 on:
   #schedule:
   #  - cron: '31 14 * * *'
@@ -12,8 +12,9 @@ on:
 env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
-  MAJOR: 9
-  MINOR: 1
+  MAJOR: 11
+  MINOR: 0
+  FIX: 1
 
 jobs:
   initialize:
@@ -22,6 +23,7 @@ jobs:
     name: Initialize
     outputs:
       images: ${{ steps.identify-images.outputs.images }}
+      version: ${{ steps.get_version.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -44,6 +46,18 @@ jobs:
               #echo $result
               echo "images=$result" >> $GITHUB_OUTPUT
               #echo "{images}={result}" >> $GITHUB_OUTPUT
+      - name: Get Version
+        id: get_version
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            export VERSION="${{ env.MAJOR }}.${{ env.MINOR }}.${{ env.FIX }}"
+          eif [[ "${{ github.event_name }}" == "release" ]]; then
+            # Extract version from the tag and remove the 'v' prefix
+            export VERSION=$(echo "${{ github.ref }}" | sed 's/refs\/tags\/v//')
+          else
+            export VERSION=${{ github.sha }}
+          fi
+          echo "version::${VERSION}" >> $GITHUB_OUTPUT
       # - name: Prepare Git credentials script
       #   run: echo 'echo ${GITHUB_TOKEN}' > $GIT_ASKPASS && chmod +x $GIT_ASKPASS
 
@@ -64,7 +78,7 @@ jobs:
           releaseReport+="| :-: | :-: | :-: |"
           IFS=',' read -ra imageArray <<< "$images"
           for image in "${imageArray[@]}"; do
-            releaseReport+="\n|$image|1.0.0|1.0.0|"
+            releaseReport+="\n|$image|${{ needs.initialize.outputs.version }}|1.0.0|"
           done
           echo -e "$releaseReport" >> $GITHUB_STEP_SUMMARY
           echo -e "\n" >> $GITHUB_STEP_SUMMARY
