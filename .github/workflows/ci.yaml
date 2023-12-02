@@ -79,6 +79,7 @@ jobs:
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab #v3.5.2
 
       - name: Generate images release report
+        id: generate_release
         run: |
           images=${{ needs.initialize.outputs.images }}
           releaseReport="# 🚀 Released Packages $RELEASE 🚀\n"
@@ -90,6 +91,8 @@ jobs:
           done
           echo -e "$releaseReport" >> $GITHUB_STEP_SUMMARY
           echo -e "\n" >> $GITHUB_STEP_SUMMARY
+          echo "RELEASE_REPORT=$releaseReport" >> $GITHUB_OUTPUT
+
       - name: Fetch Release
         id: fetch_release
         run: |
@@ -101,8 +104,8 @@ jobs:
         run: |
           RELEASE_ID=${{ steps.fetch_release.outputs.RELEASE_ID }}
           RELEASE_REPORT=$(echo ${GITHUB_STEP_SUMMARY})
-          echo "${GITHUB_STEP_SUMMARY}"
-          curl -X PATCH -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -d '{"body": "'"${RELEASE_REPORT}"'"}' "https://api.github.com/repos/${{ github.repository }}/releases/${RELEASE_ID}"
+          echo "${{ steps.generate_release.outputs.RELEASE_REPORT }}"
+          curl -X PATCH -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -d '{"body": "'"${{ steps.generate_release.outputs.RELEASE_REPORT }}"'"}' "https://api.github.com/repos/${{ github.repository }}/releases/${RELEASE_ID}"
 
   # GeneratePackagesReleaseReport:
   #   name: Generate packages release report
