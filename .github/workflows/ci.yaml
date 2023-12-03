@@ -164,6 +164,8 @@ jobs:
             imageid_key="IMAGEID_${image}"
             imageid=${!imageid_key}
             IMAGE_ID=${!metadata_key}
+            echo "DEBUG: Image: $image, BUILD_TAG: $BUILD_TAG, created: $created, Image ID: $imageid"
+            echo "$metadata"
             # Include the metadata in the release report
             releaseReport+="\n|$image|${BUILD_TAG}|${IMAGE_ID}|${created}|${imageSize} bytes|"
           done
