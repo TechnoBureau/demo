@@ -155,6 +155,7 @@ jobs:
 
           # Output the JSON object to GITHUB_OUTPUT
           echo "IMAGES_METADATA_JSON=$json_metadata" >> $GITHUB_OUTPUT
+          echo "DEBUG: Metadata for $image: $json_metadata"
 
 
   GenerateImageReleaseReport:
