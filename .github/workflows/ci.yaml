@@ -132,7 +132,7 @@ jobs:
           result=""
           created=$(echo "$DOCKER_METADATA_OUTPUT_JSON" | jq -r '.labels."org.opencontainers.image.created"')
           BUILD_TAG=$(echo "$DOCKER_METADATA_OUTPUT_JSON" | jq -r '.labels."org.opencontainers.image.version"')
-          imageid=$(echo ${{ steps.build-and-push.outputs.imageID }} | cut -c1-12)
+          imageid=$(echo ${{ steps.build-and-push.outputs.imageID }} | sed 's/^sha256://' | cut -c1-12)
           result="{ \"${{ matrix.image }}\": { \"BUILD_TAG\":\"${BUILD_TAG}\",\"IMAGE_ID\":\"$imageid\",\"CREATED\":\"${created}\" } }"
 
           echo "images_metadata=[$result]" >> $GITHUB_OUTPUT
