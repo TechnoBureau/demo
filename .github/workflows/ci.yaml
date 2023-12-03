@@ -130,11 +130,31 @@ jobs:
       - name: Set image metadata
         id: set_metadata
         run: |
-          echo "DOCKER_METADATA_OUTPUT_JSON=$DOCKER_METADATA_OUTPUT_JSON"
-          echo "METADATA_${{ matrix.image }}=$DOCKER_METADATA_OUTPUT_JSON" >> $GITHUB_ENV
-          echo "IMAGEID_${{ matrix.image }}=$(echo ${{ steps.build-and-push.outputs.imageID }} | cut -c1-12)" >> $GITHUB_ENV
-          echo "DEBUG: Metadata set for ${{ matrix.image }}: $DOCKER_METADATA_OUTPUT_JSON"
+          images=($(echo "${{ needs.initialize.outputs.images }}" | jq -r '.[]'))
 
+          # Create an associative array to store metadata and image ID for each image
+          declare -A metadata_array
+
+          for image in "${images[@]}"; do
+            metadata_key="METADATA_${image}"
+            metadata=${!metadata_key}
+
+            # Extract required metadata fields
+            created=$(echo "$metadata" | jq -r '.labels."org.opencontainers.image.created"')
+            BUILD_TAG=$(echo "$metadata" | jq -r '.labels."org.opencontainers.image.version"')
+
+            imageid_key="IMAGEID_${image}"
+            imageid=${!imageid_key}
+
+            # Add metadata and image ID to the associative array
+            metadata_array["$image"]="{\"BUILD_TAG\":\"${BUILD_TAG}\",\"IMAGE_ID\":\"${imageid}\",\"CREATED\":\"${created}\"}"
+          done
+
+          # Convert the associative array to a JSON object
+          json_metadata=$(declare -p metadata_array | sed 's#declare -A ##' | jq -n 'from_entries')
+
+          # Output the JSON object to GITHUB_OUTPUT
+          echo "IMAGES_METADATA_JSON=$json_metadata" >> $GITHUB_OUTPUT
 
 
   GenerateImageReleaseReport:
