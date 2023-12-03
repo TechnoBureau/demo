@@ -46,7 +46,7 @@ jobs:
               fi
             fi
           done
-          echo "images=[$result]" >> $GITHUB_ENV
+          echo "images=[$result]" >> $GITHUB_OUTPUT
 
       - name: Get Version
         id: get_version
@@ -60,7 +60,7 @@ jobs:
           else
             export VERSION=${{ github.ref_name }}
           fi
-          echo "version=${VERSION}" >> $GITHUB_ENV
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
   BuildImages:
     runs-on: ubuntu-latest
