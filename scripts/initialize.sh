@@ -40,6 +40,6 @@ for d in * ; do
   fi
 done
 
-echo "images=[$result]" >> $GITHUB_OUTPUT
-echo "images_metadata=[$result1]" >> $GITHUB_OUTPUT
-echo "version=${VERSION}" >> $GITHUB_OUTPUT
+echo "images=[$result]"
+echo "images_metadata=[$result1]"
+echo "version=${VERSION}"

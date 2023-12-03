@@ -10,8 +10,8 @@ json_data="$1"
 image_name="$2"
 
 # Extract the VERSION from the JSON data
-VERSION=$(echo '$json_data' | jq -r ".[] | .[\"$image_name\"].VERSION")
+VERSION=$(echo $json_data | jq -r ".[] | .[\"$image_name\"].version")
 
 # Output the version only
-echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+echo "VERSION=${VERSION}"
 

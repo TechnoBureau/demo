@@ -36,7 +36,7 @@ jobs:
       - name: Identify images
         id: identify-images
         run: |
-            ./scripts/initialize.sh ${{ github.ref }} ${{ github.ref_type }} ${{ github.event.inputs.version }}
+            ./scripts/initialize.sh ${{ github.ref }} ${{ github.ref_type }} ${{ github.event.inputs.version }} >> $GITHUB_OUTPUT
 
   BuildImages:
     runs-on: ubuntu-latest
@@ -56,7 +56,7 @@ jobs:
       - name: Extract image version
         id: extract_version
         run: |
-          ./scripts/get_image_version.sh '${{ needs.initialize.outputs.images_metadata }}' '${{ matrix.image }}'
+          ./scripts/get_image_version.sh '${{ needs.initialize.outputs.images_metadata }}' '${{ matrix.image }}' >> $GITHUB_OUTPUT
 
       - name: Extract Docker metadata
         id: meta
