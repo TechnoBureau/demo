@@ -39,19 +39,29 @@ jobs:
           cd builders
           result=""
           result1=""
-          ########## VERSION
-            if [ -n "${{ github.event.inputs.version }}" ]; then
-              export VERSION=${{ github.event.inputs.version }}
-            elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-              export VERSION="${{ env.MAJOR }}.${{ env.MINOR }}.${{ env.FIX }}"
-            elif [[ "${{ github.ref_type }}" == "tag" ]]; then
-              export VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
-            else
-              export VERSION=${{ github.ref_name }}
-            fi
+
+          ########## GENERAL VERSION
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            export GENERAL_VERSION=${{ github.event.inputs.version }}
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            export GENERAL_VERSION="${{ env.MAJOR }}.${{ env.MINOR }}.${{ env.FIX }}"
+          elif [[ "${{ github.ref_type }}" == "tag" ]]; then
+            export GENERAL_VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+          else
+            export GENERAL_VERSION=${{ github.ref_name }}
+          fi
+          echo "general_version=${GENERAL_VERSION}" >> $GITHUB_OUTPUT
           #########
+
           for d in * ; do
             if [ -d "$d" ] && [ ! -f "$d/skip" ]; then
+              # Check if Dockerfile has a version specified
+              VERSION=$(grep -E '^ARG VERSION=' "$d/Dockerfile" | cut -d' ' -f3)
+              if [ -z "$VERSION" ]; then
+                # Use the general version if not specified in Dockerfile
+                VERSION="${GENERAL_VERSION}"
+              fi
+
               if [ -z "$result" ]; then
                 result="\"$d\""
                 result1="{ \"$d\": { \"version\": \"$VERSION\" } }"
@@ -61,9 +71,9 @@ jobs:
               fi
             fi
           done
+
           echo "images=[$result]" >> $GITHUB_OUTPUT
           echo "images_metadata=[$result1]" >> $GITHUB_OUTPUT
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
   BuildImages:
     runs-on: ubuntu-latest
