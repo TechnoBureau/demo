@@ -151,7 +151,7 @@ jobs:
 
   GenerateImageReleaseReport:
     name: Generate image release report
-    if: ${{ success() }}
+    if: ${{ always() }}
     needs: [ initialize,BuildImages ]
     runs-on: [ ubuntu-latest ]
     steps:
