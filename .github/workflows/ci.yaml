@@ -109,9 +109,12 @@ jobs:
       - name: Set image metadata
         id: set_metadata
         run: |
-          result="{ \"${{ matrix.image }}\": { \"BUILD_TAG\":\"${{ steps.extract_version.outputs.VERSION }}.${{ github.run_number }}\",\"IMAGE_ID\":\"$(
-          echo ${{ steps.build-and-push.outputs.imageID }} | sed 's/^sha256://' | cut -c1-12)\",\"CREATED\":\"$(
-          echo "$DOCKER_METADATA_OUTPUT_JSON" | jq -r '.labels."org.opencontainers.image.created"')\" } }"
+          IMAGE_NAME="${{ matrix.image }}"
+          BUILD_TAG="${{ steps.extract_version.outputs.VERSION }}.${{ github.run_number }}"
+          IMAGE_ID=$(echo "${{ steps.build-and-push.outputs.imageID }}" | sed 's/^sha256://' | cut -c1-12)
+          CREATED=$(echo "$DOCKER_METADATA_OUTPUT_JSON" | jq -r '.labels."org.opencontainers.image.created"')
+
+          result="{ \"$IMAGE_NAME\": { \"BUILD_TAG\":\"$BUILD_TAG\",\"IMAGE_ID\":\"$IMAGE_ID\",\"CREATED\":\"$CREATED\" } }"
           echo "images_metadata=[$result]" >> $GITHUB_OUTPUT
 
   GenerateImageReleaseReport:
