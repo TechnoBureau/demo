@@ -40,13 +40,13 @@ jobs:
               cd builders
               result=""
               for d in * ; do
-                #if [ -f "$d/build.sh" ]; then
+                if [ -d "$d" ]; then
                   if [ -z $result ]; then
                     result="\"$d\""
                   else
                     result+=",\"$d\""
                   fi
-                #fi
+                fi
               done
               echo "images=[$result]" >> $GITHUB_OUTPUT
 
