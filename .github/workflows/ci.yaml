@@ -64,8 +64,6 @@ jobs:
           echo "images=[$result]" >> $GITHUB_OUTPUT
           echo "images_metadata=[$result1]" >> $GITHUB_OUTPUT
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "DEBUG: Metadata: $images_metadata :: $result"
-          echo "DEBUG: Images : $images :: $result1"
 
   BuildImages:
     runs-on: ubuntu-latest
@@ -137,9 +135,7 @@ jobs:
           imageid=$(echo ${{ steps.build-and-push.outputs.imageID }} | cut -c1-12)
           result="{ \"${{ matrix.image }}\": { \"BUILD_TAG\":\"${BUILD_TAG}\",\"IMAGE_ID\":\"$imageid\",\"CREATED\":\"${created}\",\"METADATA\":\"$DOCKER_METADATA_OUTPUT_JSON\" } }"
 
-          echo "images_metadata={$result}" >> $GITHUB_OUTPUT
-          echo "DEBUG: Metadata for $image: $images_metadata"
-
+          echo "images_metadata=[$result]" >> $GITHUB_OUTPUT
 
   GenerateImageReleaseReport:
     name: Generate image release - ${{ needs.initialize.outputs.version }}
@@ -157,12 +153,12 @@ jobs:
           releaseReport="# 🚀 Released Packages $RELEASE 🚀\n"
           releaseReport+="| 📦 Package | Image Tag | SHA | Created Date | Image Size |\n"
           releaseReport+="| :-: | :-: | :-: | :-: | :-: |"
+          echo "DEBUG: Metadata for $image: ${{ needs.BuildImages.outputs.images_metadata }}"
 
           for image in "${images[@]}"; do
 
             metadata_key="METADATA_${image}"
             metadata=${!metadata_key}
-            echo "DEBUG: Metadata for $image: ${{ needs.BuildImages.outputs.images_metadata }}"
 
             # Extract required metadata fields
             created=$(echo "$metadata" | jq -r '.labels."org.opencontainers.image.created"')
