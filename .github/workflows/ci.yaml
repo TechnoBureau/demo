@@ -56,8 +56,7 @@ jobs:
       - name: Extract image version
         id: extract_version
         run: |
-          VERSION=$(./scripts/get_image_version.sh "${{ needs.initialize.outputs.images_metadata }}" "${{ matrix.image }}")
-          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          ./scripts/get_image_version.sh ${{ needs.initialize.outputs.images_metadata }} "${{ matrix.image }}"
 
       - name: Extract Docker metadata
         id: meta
