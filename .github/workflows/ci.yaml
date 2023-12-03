@@ -160,7 +160,7 @@ jobs:
       - name: Generate images release report
         id: generate_release
         run: |
-          images=($(echo "${{ needs.initialize.outputs.images }}" | jq -r '.[]'))
+          images=($(echo '${{ needs.initialize.outputs.images }}' | jq -r '.[]'))
           releaseReport="# 🚀 Released Packages $RELEASE 🚀\n"
           releaseReport+="| 📦 Package | Internal Repository Location | Public Repository Location |\n"
           releaseReport+="| :-: | :-: | :-: |"
