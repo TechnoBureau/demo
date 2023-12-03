@@ -39,14 +39,26 @@ jobs:
           result=""
           for d in * ; do
             if [ -d "$d" ] && [ ! -f "$d/skip" ]; then
-              if [ -z "$result" ]; then
-                result="\"$d\""
+              ########## VERSION
+              if [ -n "${{ github.event.inputs.version }}" ]; then
+                export VERSION=${{ github.event.inputs.version }}
+              elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+                export VERSION="${{ env.MAJOR }}.${{ env.MINOR }}.${{ env.FIX }}"
+              elif [[ "${{ github.ref_type }}" == "tag" ]]; then
+                export VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
               else
-                result+=",\"$d\""
+                export VERSION=${{ github.ref_name }}
+              fi
+              #########
+
+              if [ -z "$result" ]; then
+                result="{ \"$d\": { \"version\": \"$VERSION\" } }"
+              else
+                result+=", \"$d\": { \"version\": \"$VERSION\" }"
               fi
             fi
           done
-          echo "images=[$result]" >> $GITHUB_OUTPUT
+          echo "images={$result}" >> $GITHUB_OUTPUT
 
       - name: Get Version
         id: get_version
@@ -130,25 +142,10 @@ jobs:
       - name: Set image metadata
         id: set_metadata
         run: |
-          images=($(echo "${{ needs.initialize.outputs.images }}" | jq -r '.[]'))
-
           # Create an associative array to store metadata and image ID for each image
           declare -A metadata_array
-
-          for image in "${images[@]}"; do
-            metadata_key="METADATA_${image}"
-            metadata=${!metadata_key}
-
-            # Extract required metadata fields
-            created=$(echo "$metadata" | jq -r '.labels."org.opencontainers.image.created"')
-            BUILD_TAG=$(echo "$metadata" | jq -r '.labels."org.opencontainers.image.version"')
-
-            imageid_key="IMAGEID_${image}"
-            imageid=${!imageid_key}
-
             # Add metadata and image ID to the associative array
             metadata_array["$image"]="{\"BUILD_TAG\":\"${BUILD_TAG}\",\"IMAGE_ID\":\"${imageid}\",\"CREATED\":\"${created}\"}"
-          done
 
           # Convert the associative array to a JSON object
           json_metadata=$(declare -p metadata_array | sed 's#declare -A ##' | jq -n 'from_entries')
@@ -160,7 +157,7 @@ jobs:
 
   GenerateImageReleaseReport:
     name: Generate image release - ${{ needs.initialize.outputs.version }}
-    if: ${{ always() }}
+    if: ${{ success() }}
     needs: [initialize, BuildImages]
     runs-on: ubuntu-latest
     steps:
