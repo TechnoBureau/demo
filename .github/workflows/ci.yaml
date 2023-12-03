@@ -76,7 +76,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{github.repository_owner}}/${{ matrix.image }}
           flavor: latest=true
           tags: |
-            type=raw,enable=true,priority=200,prefix=,suffix=,value=$(./scripts/get_image_version.sh "${{ needs.initialize.outputs.images_metadata }}" "${{ matrix.image }}").${{ github.run_number }}
+            type=raw,enable=true,priority=200,prefix=,suffix=,value=$(./scripts/get_image_version.sh ${{ needs.initialize.outputs.images_metadata }} ${{ matrix.image }}).${{ github.run_number }}
           labels: |
             maintainer=${{github.repository_owner}}
             name=${{github.repository_owner}}/${{ matrix.image }}
