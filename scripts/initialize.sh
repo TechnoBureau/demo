@@ -42,3 +42,4 @@ done
 
 echo "images=[$result]" >> $GITHUB_OUTPUT
 echo "images_metadata=[$result1]" >> $GITHUB_OUTPUT
+echo "version=${VERSION}" >> $GITHUB_OUTPUT
