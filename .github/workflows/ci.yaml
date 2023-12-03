@@ -48,6 +48,7 @@ jobs:
     strategy:
       matrix:
         image: ${{ fromJson(needs.initialize.outputs.images) }}
+      fail-fast: false
 
     steps:
       - name: Checkout repository
