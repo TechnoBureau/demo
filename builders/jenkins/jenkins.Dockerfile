@@ -13,7 +13,7 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
 RUN add-apt-repository \
     "deb [arch=amd64] https://download.docker.com/linux/debian \
     $(lsb_release -cs) \
-    stable"
+    stable" | apt-get update
 RUN install_packages docker-ce docker-ce-cli containerd.io
 
 RUN mkdir -p /opt/softwareag/Licenses/3rdparty
