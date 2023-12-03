@@ -4,26 +4,26 @@ GITHUB_REF=$1
 GITHUB_REF_TYPE=$2
 INPUT_VERSION=$3
 
-cd builders
+cd builders || exit 1
 result=""
 result1=""
 
-########## GENERAL VERSION
+# Determine the GENERAL_VERSION
 if [ -n "$INPUT_VERSION" ]; then
   GENERAL_VERSION="$INPUT_VERSION"
-elif [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
+elif [ "$GITHUB_REF" = "refs/heads/main" ]; then
   GENERAL_VERSION="${MAJOR}.${MINOR}.${FIX}"
-elif [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+elif [ "$GITHUB_REF_TYPE" = "tag" ]; then
   GENERAL_VERSION=$(echo "$GITHUB_REF" | sed 's/^v//')
 else
   GENERAL_VERSION="$GITHUB_REF"
 fi
 echo "general_version=${GENERAL_VERSION}"
 
-for d in * ; do
+for d in *; do
   if [ -d "$d" ] && [ ! -f "$d/skip" ]; then
     # Check if Dockerfile has a version specified
-    VERSION=$(grep -E '^ARG VERSION=' "$d/$d.Dockerfile" | awk -F '=' '{print $2}' | tr -d ' ')
+    VERSION=$(awk -F= '/^ARG VERSION=/ {print $2}' "$d/$d.Dockerfile" | tr -d ' ')
     if [ -z "$VERSION" ]; then
       # Use the general version if not specified in Dockerfile
       VERSION="${GENERAL_VERSION}"
