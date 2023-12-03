@@ -1,6 +1,8 @@
 ARG jenkins=bitnami/jenkins
 ARG baseruntime=${jenkins}
 ARG buildnumber=1
+ARG VERSION=2.426.1
+
 FROM ${baseruntime}
 
 USER 0
