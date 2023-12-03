@@ -83,8 +83,8 @@ jobs:
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Add SHORT_SHA env property with commit short sha
-        run: echo "SHORT_SHA=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
+      # - name: Add SHORT_SHA env property with commit short sha
+      #   run: echo "SHORT_SHA=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
 
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
@@ -102,9 +102,9 @@ jobs:
           flavor: latest=true
           tags: |
             type=raw,enable=true,priority=200,prefix=,suffix=,value=${{ needs.initialize.outputs.version }}.${{ github.run_number }}
-            type=raw,enable=true,priority=300,prefix=,suffix=,value=${{ needs.initialize.outputs.version }}.${{ env.SHORT_SHA }}
-            type=ref,event=branch
-            type=ref,event=tag
+            # type=raw,enable=true,priority=300,prefix=,suffix=,value=${{ needs.initialize.outputs.version }}.${{ env.SHORT_SHA }}
+            # type=ref,event=branch
+            # type=ref,event=tag
           labels: |
             maintainer=${{github.repository_owner}}
             name=${{github.repository_owner}}/${{ matrix.image }}
@@ -113,7 +113,7 @@ jobs:
             org.opencontainers.image.title=${{github.repository_owner}}/${{ matrix.image }}
             org.opencontainers.image.version=${{ needs.initialize.outputs.version }}.${{ github.run_number }}
             org.opencontainers.image.description=${{github.repository_owner}}/${{ matrix.image }}
-            org.opencontainers.image.revision=${{ env.SHORT_SHA }}
+            #org.opencontainers.image.revision=${{ env.SHORT_SHA }}
 
       - name: Build and push Docker image
         id: build-and-push
@@ -130,9 +130,8 @@ jobs:
       - name: Set image metadata
         id: set_metadata
         run: |
-          echo "IMAGE_ID_${{ matrix.image }}=${{ steps.build-and-push.outputs.imageID }}" >> $GITHUB_ENV
-          echo "DIGEST_${{ matrix.image }}=${{ steps.build-and-push.outputs.digest }}" >> $GITHUB_ENV
-          echo "METADATA_${{ matrix.image }}=${{ toJson(steps.build-and-push.outputs.metadata) }}" >> $GITHUB_ENV
+          echo "METADATA_${{ matrix.image }}=$DOCKER_METADATA_OUTPUT_JSON" >> $GITHUB_ENV
+          echo "IMAGEID_${{ matrix.image }}=$(echo ${{ steps.build-and-push.outputs.imageID }} | cut -c1-12)" >> $GITHUB_ENV
 
 
 
@@ -150,26 +149,19 @@ jobs:
         run: |
           images=($(echo '${{ needs.initialize.outputs.images }}' | jq -r '.[]'))
           releaseReport="# 🚀 Released Packages $RELEASE 🚀\n"
-          releaseReport+="| 📦 Package | Internal Repository Location | Public Repository Location | Build Time | Created Date | SHA | Image Tag | Execution Time | Image Size |\n"
-          releaseReport+="| :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |"
+          releaseReport+="| 📦 Package | Image Tag | SHA | Created Date | Image Size |\n"
+          releaseReport+="| :-: | :-: | :-: | :-: | :-: |"
 
           for image in "${images[@]}"; do
-            image_id_key="IMAGE_ID_${image}"
-            image_id=${!image_id_key}
-
-            digest_key="DIGEST_${image}"
-            digest=${!digest_key}
 
             metadata_key="METADATA_${image}"
             metadata=${!metadata_key}
 
             # Extract required metadata fields
-            createdDate=$(echo "$metadata" | jq -r '.created')
-            version=$(echo "$metadata" | jq -r '.config.Labels.version')
-            sha=$image_id
-
+            created=$(echo "$metadata" | jq -r '.labels."org.opencontainers.image.created"')
+            BUILD_TAG=$(echo "$metadata" | jq -r '.labels."org.opencontainers.image.version"')
             # Include the metadata in the release report
-            releaseReport+="\n|$image|${{ needs.initialize.outputs.version }}|1.0.0|${createdDate}|${version}|${sha}|${BUILD_TAG}|${executionTime}s|${imageSize} bytes|"
+            releaseReport+="\n|$image|${BUILD_TAG}|IMAGEID_${image}|${created}|${imageSize} bytes|"
           done
 
           echo -e "$releaseReport" >> $GITHUB_STEP_SUMMARY
