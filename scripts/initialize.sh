@@ -41,4 +41,4 @@ done
 
 echo "images=[$result]"
 echo "images_metadata=[$result1]"
-echo "version=${VERSION}"
+echo "version=${GENERAL_VERSION}"
