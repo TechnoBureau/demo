@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 GITHUB_REF=$1
 GITHUB_REF_TYPE=$2
@@ -39,5 +39,5 @@ for d in * ; do
   fi
 done
 
-echo "images=[$result]"
-echo "images_metadata=[$result1]"
+echo "images=[$result]" >> $GITHUB_OUTPUT
+echo "images_metadata=[$result1]" >> $GITHUB_OUTPUT
