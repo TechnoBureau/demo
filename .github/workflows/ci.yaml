@@ -153,7 +153,7 @@ jobs:
           releaseReport="# 🚀 Released Packages $RELEASE 🚀\n"
           releaseReport+="| 📦 Package | Image Tag | SHA | Created Date | Image Size |\n"
           releaseReport+="| :-: | :-: | :-: | :-: | :-: |"
-          echo "DEBUG: Metadata for $image: ${{ needs.BuildImages.outputs.images_metadata }}"
+          #echo "DEBUG: Metadata for $image: ${{ needs.BuildImages.outputs.images_metadata }}"
 
           #for image in "${images[@]}"; do
             # Include the metadata in the release report
