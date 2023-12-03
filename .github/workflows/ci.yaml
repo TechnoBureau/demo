@@ -36,18 +36,18 @@ jobs:
       - name: Identify images
         id: identify-images
         run: |
-            ./scripts/initialize.sh ${{ github.ref }} ${{ github.ref_type }} ${{ github.event.inputs.version }} >> $GITHUB_OUTPUT
+          ./scripts/initialize.sh ${{ github.ref }} ${{ github.ref_type }} ${{ github.event.inputs.version }} >> $GITHUB_OUTPUT
 
   BuildImages:
     runs-on: ubuntu-latest
-    if: ${{ success() }}
     needs: [initialize]
+    if: success()
     outputs:
       images_metadata: ${{ steps.set_metadata.outputs.images_metadata }}
+
     strategy:
       matrix:
         image: ${{ fromJson(needs.initialize.outputs.images) }}
-      fail-fast: false
 
     steps:
       - name: Checkout repository
@@ -104,23 +104,21 @@ jobs:
           cache-to: type=gha,mode=max
           file: ${{ matrix.image }}/${{ matrix.image }}.Dockerfile
           platforms: linux/amd64,linux/arm64
+
       - name: Set image metadata
         id: set_metadata
         run: |
-          # Create an associative array to store metadata and image ID for each image
-          result=""
-          created=$(echo "$DOCKER_METADATA_OUTPUT_JSON" | jq -r '.labels."org.opencontainers.image.created"')
-          BUILD_TAG=$(echo "$DOCKER_METADATA_OUTPUT_JSON" | jq -r '.labels."org.opencontainers.image.version"')
-          imageid=$(echo ${{ steps.build-and-push.outputs.imageID }} | sed 's/^sha256://' | cut -c1-12)
-          result="{ \"${{ matrix.image }}\": { \"BUILD_TAG\":\"${BUILD_TAG}\",\"IMAGE_ID\":\"$imageid\",\"CREATED\":\"${created}\" } }"
-
+          result="{ \"${{ matrix.image }}\": { \"BUILD_TAG\":\"${{ steps.extract_version.outputs.VERSION }}.${{ github.run_number }}\",\"IMAGE_ID\":\"$(
+          echo ${{ steps.build-and-push.outputs.imageID }} | sed 's/^sha256://' | cut -c1-12)\",\"CREATED\":\"$(
+          echo "$DOCKER_METADATA_OUTPUT_JSON" | jq -r '.labels."org.opencontainers.image.created"')\" } }"
           echo "images_metadata=[$result]" >> $GITHUB_OUTPUT
 
   GenerateImageReleaseReport:
     name: Generate image release - ${{ needs.initialize.outputs.version }}
-    if: ${{ success() }}
-    needs: [initialize, BuildImages]
     runs-on: ubuntu-latest
+    needs: [initialize, BuildImages]
+    if: success()
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -139,7 +137,6 @@ jobs:
             BUILD_TAG=$(echo "$JSON_DATA" | jq -r ".[] | .$image.BUILD_TAG")
             IMAGE_ID=$(echo "$JSON_DATA" | jq -r ".[] | .$image.IMAGE_ID")
             CREATED=$(echo "$JSON_DATA" | jq -r ".[] | .$image.CREATED")
-            # Include the metadata in the release report
             releaseReport+="\n|$image|${BUILD_TAG}|${IMAGE_ID}|${CREATED}|"
           done
           echo -e "$releaseReport" >> $GITHUB_STEP_SUMMARY
