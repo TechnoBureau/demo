@@ -73,6 +73,7 @@ jobs:
             export VERSION=${{ github.ref_name }}
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "DEBUG:: ${{ steps.identify-images.outputs.images }}"
 
   BuildImages:
     runs-on: ubuntu-latest
