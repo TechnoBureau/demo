@@ -2,7 +2,7 @@
 
 # Check if the required arguments are provided
 if [ "$#" -ne 2 ]; then
-  echo "Usage: $0 <json_data> <image_name>"
+  echo "Usage: $0 <json_data> <image_name> : $#"
   exit 1
 fi
 

@@ -24,7 +24,7 @@ for d in * ; do
   if [ -d "$d" ] && [ ! -f "$d/skip" ]; then
     # Check if Dockerfile has a version specified
     VERSION=$(grep -E '^ARG VERSION=' "$d/$d.Dockerfile" | awk -F '=' '{print $2}' | tr -d ' ')
-
+    echo "Debug: $VERSION"
     if [ -z "$VERSION" ]; then
       # Use the general version if not specified in Dockerfile
       VERSION="${GENERAL_VERSION}"
