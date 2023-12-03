@@ -133,7 +133,7 @@ jobs:
           created=$(echo "$DOCKER_METADATA_OUTPUT_JSON" | jq -r '.labels."org.opencontainers.image.created"')
           BUILD_TAG=$(echo "$DOCKER_METADATA_OUTPUT_JSON" | jq -r '.labels."org.opencontainers.image.version"')
           imageid=$(echo ${{ steps.build-and-push.outputs.imageID }} | cut -c1-12)
-          result="{ \"${{ matrix.image }}\": { \"BUILD_TAG\":\"${BUILD_TAG}\",\"IMAGE_ID\":\"$imageid\",\"CREATED\":\"${created}\",\"METADATA\":\"$DOCKER_METADATA_OUTPUT_JSON\" } }"
+          result="{ \"${{ matrix.image }}\": { \"BUILD_TAG\":\"${BUILD_TAG}\",\"IMAGE_ID\":\"$imageid\",\"CREATED\":\"${created}\" } }"
 
           echo "images_metadata=[$result]" >> $GITHUB_OUTPUT
 
@@ -150,15 +150,19 @@ jobs:
         id: generate_release
         run: |
           images=($(echo '${{ needs.initialize.outputs.images }}' | jq -r '.[]'))
+          JSON_DATA='${{ needs.BuildImages.outputs.images_metadata }}'
           releaseReport="# 🚀 Released Packages $RELEASE 🚀\n"
           releaseReport+="| 📦 Package | Image Tag | SHA | Created Date | Image Size |\n"
           releaseReport+="| :-: | :-: | :-: | :-: | :-: |"
-          #echo "DEBUG: Metadata for $image: ${{ needs.BuildImages.outputs.images_metadata }}"
+          #echo "DEBUG: Metadata : $JSON_DATA"
 
-          #for image in "${images[@]}"; do
+          for image in "${images[@]}"; do
+            BUILD_TAG=$(echo "$JSON_DATA" | jq -r '.$image.BUILD_TAG')
+            IMAGE_ID=$(echo "$JSON_DATA" | jq -r '.$image.IMAGE_ID')
+            CREATED=$(echo "$JSON_DATA" | jq -r '.$image.CREATED')
             # Include the metadata in the release report
-            #releaseReport+="\n|$image|${BUILD_TAG}|${IMAGE_ID}|${created}|${imageSize} bytes|"
-          #done
+            releaseReport+="\n|$image|${BUILD_TAG}|${IMAGE_ID}|${CREATED}|bytes|"
+          done
           echo -e "$releaseReport" >> $GITHUB_STEP_SUMMARY
           echo -e "\n" >> $GITHUB_STEP_SUMMARY
 
