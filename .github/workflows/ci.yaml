@@ -150,7 +150,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
 
   GenerateImageReleaseReport:
-    name: Generate image release report
+    name: Generate image release - ${{ needs.initialize.outputs.version }}
     if: ${{ always() }}
     needs: [ initialize,BuildImages ]
     runs-on: [ ubuntu-latest ]
@@ -160,13 +160,11 @@ jobs:
       - name: Generate images release report
         id: generate_release
         run: |
-          images=${{ needs.initialize.outputs.images }}
+          images=(${{ needs.initialize.outputs.images }})
           releaseReport="# 🚀 Released Packages $RELEASE 🚀\n"
           releaseReport+="| 📦 Package | Internal Repository Location | Public Repository Location |\n"
           releaseReport+="| :-: | :-: | :-: |"
-          #IFS=',' read -ra imageArray <<< "$images"
-          imageArray=($(echo "$images" | jq -r '.image[]'))
-          for image in "${imageArray[@]}"; do
+          for image in "${images[@]}"; do
             releaseReport+="\n|$image|${{ needs.initialize.outputs.version }}|1.0.0|"
           done
           echo -e "$releaseReport" >> $GITHUB_STEP_SUMMARY
