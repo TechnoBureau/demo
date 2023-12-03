@@ -1,7 +1,7 @@
 ARG jenkins=bitnami/jenkins
 ARG baseruntime=${jenkins}
 ARG buildnumber=1
-
+ARG VERSION=2.426.1
 FROM ${baseruntime}
 
 USER 0
@@ -17,7 +17,7 @@ RUN add-apt-repository \
     stable"
 RUN install_packages docker-ce docker-ce-cli containerd.io
 
-RUN usermod -aG docker bitnami
+RUN usermod -aG docker 1001
 
 RUN mkdir -p /opt/softwareag/Licenses/3rdparty
 
