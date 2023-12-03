@@ -24,7 +24,8 @@ jobs:
     name: Initialize
     outputs:
       images: ${{ steps.identify-images.outputs.images }}
-      version: ${{ steps.get_version.outputs.version }}
+      images_metadata: ${{ steps.identify-images.outputs.images_metadata }}
+      version: ${{ steps.identify-images.outputs.version }}
 
     steps:
       - name: Checkout
@@ -37,48 +38,39 @@ jobs:
         run: |
           cd builders
           result=""
+          result1=""
+          ########## VERSION
+            if [ -n "${{ github.event.inputs.version }}" ]; then
+              export VERSION=${{ github.event.inputs.version }}
+            elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+              export VERSION="${{ env.MAJOR }}.${{ env.MINOR }}.${{ env.FIX }}"
+            elif [[ "${{ github.ref_type }}" == "tag" ]]; then
+              export VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+            else
+              export VERSION=${{ github.ref_name }}
+            fi
+          #########
           for d in * ; do
             if [ -d "$d" ] && [ ! -f "$d/skip" ]; then
-              ########## VERSION
-              if [ -n "${{ github.event.inputs.version }}" ]; then
-                export VERSION=${{ github.event.inputs.version }}
-              elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-                export VERSION="${{ env.MAJOR }}.${{ env.MINOR }}.${{ env.FIX }}"
-              elif [[ "${{ github.ref_type }}" == "tag" ]]; then
-                export VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
-              else
-                export VERSION=${{ github.ref_name }}
-              fi
-              #########
-
               if [ -z "$result" ]; then
-                result="{ \"$d\": { \"version\": \"$VERSION\" } }"
+                result="\"$d\""
+                result1="{ \"$d\": { \"version\": \"$VERSION\" } }"
               else
-                result+=", \"$d\": { \"version\": \"$VERSION\" }"
+                result+=",\"$d\""
+                result1+=", \"$d\": { \"version\": \"$VERSION\" }"
               fi
             fi
           done
           echo "images={$result}" >> $GITHUB_OUTPUT
-
-      - name: Get Version
-        id: get_version
-        run: |
-          if [ -n "${{ github.event.inputs.version }}" ]; then
-            export VERSION=${{ github.event.inputs.version }}
-          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            export VERSION="${{ env.MAJOR }}.${{ env.MINOR }}.${{ env.FIX }}"
-          elif [[ "${{ github.ref_type }}" == "tag" ]]; then
-            export VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
-          else
-            export VERSION=${{ github.ref_name }}
-          fi
+          echo "images_metadata={$result1}" >> $GITHUB_OUTPUT
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "DEBUG:: ${{ steps.identify-images.outputs.images }}"
 
   BuildImages:
     runs-on: ubuntu-latest
     if: ${{ success() }}
     needs: [initialize]
+    outputs:
+      images_metadata: ${{ steps.set_metadata.outputs.images_metadata }}
     strategy:
       matrix:
         image: ${{ fromJson(needs.initialize.outputs.images) }}
@@ -96,9 +88,6 @@ jobs:
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v3
 
-      # - name: Add SHORT_SHA env property with commit short sha
-      #   run: echo "SHORT_SHA=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
-
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
@@ -115,9 +104,6 @@ jobs:
           flavor: latest=true
           tags: |
             type=raw,enable=true,priority=200,prefix=,suffix=,value=${{ needs.initialize.outputs.version }}.${{ github.run_number }}
-            # type=raw,enable=true,priority=300,prefix=,suffix=,value=${{ needs.initialize.outputs.version }}.${{ env.SHORT_SHA }}
-            # type=ref,event=branch
-            # type=ref,event=tag
           labels: |
             maintainer=${{github.repository_owner}}
             name=${{github.repository_owner}}/${{ matrix.image }}
@@ -126,7 +112,6 @@ jobs:
             org.opencontainers.image.title=${{github.repository_owner}}/${{ matrix.image }}
             org.opencontainers.image.version=${{ needs.initialize.outputs.version }}.${{ github.run_number }}
             org.opencontainers.image.description=${{github.repository_owner}}/${{ matrix.image }}
-            #org.opencontainers.image.revision=${{ env.SHORT_SHA }}
 
       - name: Build and push Docker image
         id: build-and-push
@@ -144,16 +129,14 @@ jobs:
         id: set_metadata
         run: |
           # Create an associative array to store metadata and image ID for each image
-          declare -A metadata_array
-            # Add metadata and image ID to the associative array
-            metadata_array["$image"]="{\"BUILD_TAG\":\"${BUILD_TAG}\",\"IMAGE_ID\":\"${imageid}\",\"CREATED\":\"${created}\"}"
+          result=""
+          created=$(echo "$DOCKER_METADATA_OUTPUT_JSON" | jq -r '.labels."org.opencontainers.image.created"')
+          BUILD_TAG=$(echo "$DOCKER_METADATA_OUTPUT_JSON" | jq -r '.labels."org.opencontainers.image.version"')
+          imageid=$(echo ${{ steps.build-and-push.outputs.imageID }} | cut -c1-12)
+          result="{ \"${{ matrix.image }}\": { \"BUILD_TAG\":\"${BUILD_TAG}\",\"IMAGE_ID\":\"$imageid\",\"CREATED\":\"${created}\",\"METADATA\":\"$DOCKER_METADATA_OUTPUT_JSON\" } }"
 
-          # Convert the associative array to a JSON object
-          json_metadata=$(declare -p metadata_array | sed 's#declare -A ##' | jq -n 'from_entries')
-
-          # Output the JSON object to GITHUB_OUTPUT
-          echo "IMAGES_METADATA_JSON=$json_metadata" >> $GITHUB_OUTPUT
-          echo "DEBUG: Metadata for $image: $json_metadata"
+          echo "images_metadata={$result}" >> $GITHUB_OUTPUT
+          echo "DEBUG: Metadata for $image: $images_metadata"
 
 
   GenerateImageReleaseReport:
@@ -177,7 +160,7 @@ jobs:
 
             metadata_key="METADATA_${image}"
             metadata=${!metadata_key}
-            echo "DEBUG: Metadata for $image: $metadata"
+            echo "DEBUG: Metadata for $image: ${{ needs.BuildImages.outputs.images_metadata }}"
 
             # Extract required metadata fields
             created=$(echo "$metadata" | jq -r '.labels."org.opencontainers.image.created"')
