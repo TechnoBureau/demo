@@ -155,23 +155,10 @@ jobs:
           releaseReport+="| :-: | :-: | :-: | :-: | :-: |"
           echo "DEBUG: Metadata for $image: ${{ needs.BuildImages.outputs.images_metadata }}"
 
-          for image in "${images[@]}"; do
-
-            metadata_key="METADATA_${image}"
-            metadata=${!metadata_key}
-
-            # Extract required metadata fields
-            created=$(echo "$metadata" | jq -r '.labels."org.opencontainers.image.created"')
-            BUILD_TAG=$(echo "$metadata" | jq -r '.labels."org.opencontainers.image.version"')
-            imageid_key="IMAGEID_${image}"
-            imageid=${!imageid_key}
-            IMAGE_ID=${!metadata_key}
-            echo "DEBUG: Image: $image, BUILD_TAG: $BUILD_TAG, created: $created, Image ID: $imageid"
-            echo "$metadata"
+          #for image in "${images[@]}"; do
             # Include the metadata in the release report
-            releaseReport+="\n|$image|${BUILD_TAG}|${IMAGE_ID}|${created}|${imageSize} bytes|"
-          done
-
+            #releaseReport+="\n|$image|${BUILD_TAG}|${IMAGE_ID}|${created}|${imageSize} bytes|"
+          #done
           echo -e "$releaseReport" >> $GITHUB_STEP_SUMMARY
           echo -e "\n" >> $GITHUB_STEP_SUMMARY
 
