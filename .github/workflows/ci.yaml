@@ -40,7 +40,7 @@ jobs:
               cd builders
               result=""
               for d in * ; do
-                if [ -d "$d" ]; then
+                if [ -d "$d" ] && [ ! -f "$d/skip" ]; then
                   if [ -z $result ]; then
                     result="\"$d\""
                   else
