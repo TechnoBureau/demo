@@ -1,23 +1,22 @@
-FROM registry.access.redhat.com/ubi9/ubi AS builder
+ARG jenkins=bitnami/jenkins
+ARG baseruntime=${jenkins}
+ARG buildnumber=1
 
-COPY *.sh docker.yaml /tmp/
-RUN chmod +rx /tmp/*.sh
-RUN bash /tmp/install.sh && rm -rf /tmp/*
+FROM ${baseruntime}
 
-FROM scratch
+USER 0
 
-COPY --from=builder /mnt/rootfs/ /
+# Install Docker in the Bitnami Jenkins image
+RUN install_packages docker
 
-ENV HOME /opt/technobureau
+# Copy the custom entrypoint script
+COPY ./jenkins/entrypoint.sh /usr/local/bin/entrypoint.sh
 
-COPY --from=builder --chown=1724:0 ${HOME}/ ${HOME}/
+RUN mkdir -p /opt/softwareag/Licenses/3rdparty
 
-ENV LANG=en_US.UTF8 \
-    LC_ALL=en_US.UTF8
+COPY ./jenkins/bitnami-license-terms.pdf /opt/softwareag/Licenses/3rdparty/bitnami-license-terms.pdf
 
-USER 1724
-WORKDIR ${HOME}
+USER 1001
 
-ENV PATH=/opt/technobureau:/opt/technobureau/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-CMD ["/bin/bash"]
+# Set the custom entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
