@@ -64,8 +64,8 @@ jobs:
           echo "images={$result}" >> $GITHUB_OUTPUT
           echo "images_metadata={$result1}" >> $GITHUB_OUTPUT
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "DEBUG: Metadata: $images_metadata"
-          echo "DEBUG: Images : $images"
+          echo "DEBUG: Metadata: $images_metadata :: $result"
+          echo "DEBUG: Images : $images :: $result1"
 
   BuildImages:
     runs-on: ubuntu-latest
