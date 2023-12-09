@@ -11,11 +11,8 @@ result1=""
 
 # Upload assets
 upload_assets() {
-  echo "Debug: $GENERAL_VERSION"
-  echo "Debug: $GITHUB_REPOSITORY"
-
   RELEASE_ID=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$GENERAL_VERSION" | jq -r '.id')
-
+  echo "Debug $RELEASE_ID"
   touch release.json
 
   # Upload release.json
