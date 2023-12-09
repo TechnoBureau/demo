@@ -2,8 +2,8 @@
 
 GITHUB_REF=$1
 GITHUB_REF_TYPE=$2
-INPUT_VERSION=$3
-GITHUB_TOKEN="$4"
+GITHUB_TOKEN=$3
+INPUT_VERSION=$4
 
 cd builders || exit 1
 result=""
