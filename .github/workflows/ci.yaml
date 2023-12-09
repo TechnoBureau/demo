@@ -36,7 +36,7 @@ jobs:
       - name: Identify images
         id: identify-images
         run: |
-          ./scripts/initialize.sh ${{ github.ref }} ${{ github.ref_type }} ${{ secrets.GITHUB_TOKEN }} ${{ github.event.inputs.version }} >> $GITHUB_OUTPUT
+          ./scripts/initialize.sh ${{ github.ref }} ${{ secrets.GITHUB_TOKEN }} ${{ github.event.inputs.version }} >> $GITHUB_OUTPUT
 
   BuildImages:
     runs-on: ubuntu-latest
@@ -116,6 +116,8 @@ jobs:
 
           result="{ \"$IMAGE_NAME\": { \"BUILD_TAG\":\"$BUILD_TAG\",\"IMAGE_ID\":\"$IMAGE_ID\",\"CREATED\":\"$CREATED\" } }"
           echo "images_metadata=[$result]" >> $GITHUB_OUTPUT
+          ./scripts/set_image_metadata.sh '{$result}' '${{ needs.initialize.outputs.version }}' '${{ secrets.GITHUB_TOKEN }}'
+
 
   GenerateImageReleaseReport:
     name: Generate image release - ${{ needs.initialize.outputs.version }}

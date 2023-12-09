@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
 GITHUB_REF=$1
-GITHUB_REF_TYPE=$2
-GITHUB_TOKEN=$3
-INPUT_VERSION=$4
+GITHUB_TOKEN=$2
+INPUT_VERSION=$3
 #GITHUB_REPOSITORY=Technobureau/demo
 cd builders || exit 1
 result=""
@@ -23,7 +22,7 @@ upload_release_metadata() {
     -H "Authorization: Bearer $GITHUB_TOKEN" \
     -H "Content-Type: application/vnd.github+json" \
     --data-binary "@$ASSET_NAME" \
-    https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=$ASSET_NAME
+    https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=$ASSET_NAME > /dev/null
   else
       # curl -s -L \
       #   -X DELETE \
