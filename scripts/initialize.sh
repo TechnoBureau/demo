@@ -26,7 +26,9 @@ else
   GENERAL_VERSION="$GITHUB_REF"
 fi
 echo "general_version=${GENERAL_VERSION}"
+
 upload_assets
+
 for d in *; do
   if [ -d "$d" ] && [ ! -f "$d/skip" ]; then
     # Check if Dockerfile has a version specified
