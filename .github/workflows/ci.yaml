@@ -116,7 +116,7 @@ jobs:
 
           result="{ \"$IMAGE_NAME\": { \"BUILD_TAG\":\"$BUILD_TAG\",\"IMAGE_ID\":\"$IMAGE_ID\",\"CREATED\":\"$CREATED\" } }"
           echo "images_metadata=[$result]" >> $GITHUB_OUTPUT
-          ./scripts/set_image_metadata.sh '{$result}' '${{ needs.initialize.outputs.version }}' '${{ secrets.GITHUB_TOKEN }}'
+          ./scripts/set_image_metadata.sh "$result" '${{ needs.initialize.outputs.version }}' '${{ secrets.GITHUB_TOKEN }}'
 
 
   GenerateImageReleaseReport:
