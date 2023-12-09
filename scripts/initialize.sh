@@ -4,7 +4,7 @@ GITHUB_REF=$1
 GITHUB_REF_TYPE=$2
 GITHUB_TOKEN=$3
 INPUT_VERSION=$4
-#GITHUB_REPOSITORY=
+GITHUB_REPOSITORY=Technobureau/demo
 cd builders || exit 1
 result=""
 result1=""
@@ -22,8 +22,8 @@ upload_release_metadata() {
     curl -s -L -X POST \
     -H "Authorization: Bearer $GITHUB_TOKEN" \
     -H "Content-Type: application/vnd.github+json" \
-    --data-binary "@release.json" \
-    https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=release.json
+    --data-binary "@$ASSET_NAME" \
+    https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=$ASSET_NAME
   else
       # curl -L \
       #   -X DELETE \
@@ -31,7 +31,7 @@ upload_release_metadata() {
       #   -H "Authorization: Bearer $GITHUB_TOKEN" \
       #   -H "X-GitHub-Api-Version: 2022-11-28" \
       #   https://api.github.com/repos/$GITHUB_REPOSITORY/releases/assets/$ASSET_ID
-    return
+    return 0
   fi
 }
 
