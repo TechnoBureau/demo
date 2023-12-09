@@ -7,13 +7,20 @@ INPUT_VERSION=$3
 cd builders || exit 1
 result=""
 result1=""
+
+# Upload assets
 upload_assets() {
+  echo "Debug: $RELEASE_VERSION"
+
   RELEASE_ID=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_VERSION" | jq -r '.id')
 
-  #curl -X PATCH -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" -d '{"body": "'"$RELEASE_REPORT"'"}' "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID"
   touch release.json
+
+  # Upload release.json
   curl -L -X POST -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=release-${GENERAL_VERSION}.json" -H "Content-Type: text/plain" --data-binary "@release.json"
+
 }
+
 
 # Determine the GENERAL_VERSION
 if [ -n "$INPUT_VERSION" ]; then
@@ -48,6 +55,16 @@ for d in *; do
   fi
 done
 
-echo "images=[$result]"
-echo "images_metadata={$result1}"
-echo "version=${GENERAL_VERSION}"
+#echo "images=[$result]"
+#echo "images_metadata={$result1}"
+# Set output variables with multiline content
+echo "images<<EOF
+$result
+EOF" >> $GITHUB_OUTPUT
+
+echo "images_metadata<<EOF
+$result1
+EOF" >> $GITHUB_OUTPUT
+
+echo "version=${GENERAL_VERSION}" >> $GITHUB_OUTPUT
+#echo "version=${GENERAL_VERSION}"
