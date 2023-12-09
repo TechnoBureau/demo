@@ -7,7 +7,14 @@ INPUT_VERSION=$3
 cd builders || exit 1
 result=""
 result1=""
+function upload_assets () {
+  RELEASE_ID=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_VERSION" | jq -r '.id')
 
+  #curl -X PATCH -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" -d '{"body": "'"$RELEASE_REPORT"'"}' "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID"
+  touch release.json
+  curl -L -X POST -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=release-${GENERAL_VERSION}.json" -H "Content-Type: text/plain" --data-binary "@release.json"
+
+}
 # Determine the GENERAL_VERSION
 if [ -n "$INPUT_VERSION" ]; then
   GENERAL_VERSION="$INPUT_VERSION"
@@ -19,7 +26,7 @@ else
   GENERAL_VERSION="$GITHUB_REF"
 fi
 echo "general_version=${GENERAL_VERSION}"
-
+upload_assets
 for d in *; do
   if [ -d "$d" ] && [ ! -f "$d/skip" ]; then
     # Check if Dockerfile has a version specified
