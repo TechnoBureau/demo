@@ -69,6 +69,6 @@ echo "images=[$result]"
 echo "images_metadata={$result1}"
 echo "version=${GENERAL_VERSION}"
 
-if [[ "$GITHUB_REF" =~ "refs/tags/" ]]; then
+#if [[ "$GITHUB_REF" =~ "refs/tags/" ]]; then
 upload_release_metadata "{$result1}"
-fi
+#fi
