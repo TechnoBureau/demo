@@ -4,22 +4,36 @@ GITHUB_REF=$1
 GITHUB_REF_TYPE=$2
 GITHUB_TOKEN=$3
 INPUT_VERSION=$4
-
+#GITHUB_REPOSITORY=
 cd builders || exit 1
 result=""
 result1=""
 
 # Upload assets
-upload_assets() {
+upload_release_metadata() {
+  ASSET_NAME=release.json
+  echo "$1" > "$ASSET_NAME"
+
   RELEASE_ID=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$GENERAL_VERSION" | jq -r '.id')
-  echo "Debug $RELEASE_ID"
-  touch release.json
 
-  # Upload release.json
-  curl -X PATCH -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=release.json" -H "Content-Type: text/plain" --data-binary "release.json"
+  ASSET_ID=$(curl -L -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets | jq -r '.[] | select(.name == '\"$ASSET_NAME\"') | .id')
 
+  if [ -z "$ASSET_ID" ]; then
+    curl -s -L -X POST \
+    -H "Authorization: Bearer $GITHUB_TOKEN" \
+    -H "Content-Type: application/vnd.github+json" \
+    --data-binary "@release.json" \
+    https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=release.json
+  else
+      # curl -L \
+      #   -X DELETE \
+      #   -H "Accept: application/vnd.github+json" \
+      #   -H "Authorization: Bearer $GITHUB_TOKEN" \
+      #   -H "X-GitHub-Api-Version: 2022-11-28" \
+      #   https://api.github.com/repos/$GITHUB_REPOSITORY/releases/assets/$ASSET_ID
+    return
+  fi
 }
-
 
 # Determine the GENERAL_VERSION
 if [ -n "$INPUT_VERSION" ]; then
@@ -32,8 +46,6 @@ else
   GENERAL_VERSION="$GITHUB_REF"
 fi
 echo "general_version=${GENERAL_VERSION}"
-
-upload_assets
 
 for d in *; do
   if [ -d "$d" ] && [ ! -f "$d/skip" ]; then
@@ -54,16 +66,8 @@ for d in *; do
   fi
 done
 
-#echo "images=[$result]"
-#echo "images_metadata={$result1}"
-# Set output variables with multiline content
-echo "images<<EOF
-$result
-EOF" >> $GITHUB_OUTPUT
+echo "images=[$result]"
+echo "images_metadata={$result1}"
+echo "version=${GENERAL_VERSION}"
 
-echo "images_metadata<<EOF
-$result1
-EOF" >> $GITHUB_OUTPUT
-
-echo "version=${GENERAL_VERSION}" >> $GITHUB_OUTPUT
-#echo "version=${GENERAL_VERSION}"
+upload_release_metadata "{$result1}"
