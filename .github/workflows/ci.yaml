@@ -130,5 +130,5 @@ jobs:
       - name: Generate images release report
         id: generate_release
         run: |
-          ./scripts/generate_release_report.sh '${{ needs.initialize.outputs.images }}' '${{ needs.BuildImages.outputs.images_metadata }}' '${{ needs.initialize.outputs.version }}' '${{ secrets.GITHUB_TOKEN }}' >> $GITHUB_STEP_SUMMARY
+          ./scripts/generate_release_report.sh '${{ needs.BuildImages.outputs.images_metadata }}' '${{ needs.initialize.outputs.version }}' '${{ secrets.GITHUB_TOKEN }}' >> $GITHUB_STEP_SUMMARY
 
