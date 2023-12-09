@@ -7,19 +7,19 @@ FROM ${baseruntime}
 
 USER 0
 
-# Install Docker in the Bitnami Jenkins image
-RUN install_packages apt-transport-https ca-certificates curl gnupg2 software-properties-common
+# # Install Docker in the Bitnami Jenkins image
+# RUN install_packages apt-transport-https ca-certificates curl gnupg2 software-properties-common
 
-RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
+# RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
 
-RUN add-apt-repository \
-    "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/debian \
-    $(lsb_release -cs) \
-    stable"
-RUN apt-get update && install_packages docker-ce docker-ce-cli containerd.io
+# RUN add-apt-repository \
+#     "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/debian \
+#     $(lsb_release -cs) \
+#     stable"
+# RUN apt-get update && install_packages docker-ce docker-ce-cli containerd.io
 
-RUN mkdir -p /opt/softwareag/Licenses/3rdparty
+# RUN mkdir -p /opt/softwareag/Licenses/3rdparty
 
-COPY ./jenkins/bitnami-license-terms.pdf /opt/softwareag/Licenses/3rdparty/bitnami-license-terms.pdf
+# COPY ./jenkins/bitnami-license-terms.pdf /opt/softwareag/Licenses/3rdparty/bitnami-license-terms.pdf
 
-USER 1001
+# USER 1001
