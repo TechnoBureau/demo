@@ -13,8 +13,8 @@ upload_assets () {
   #curl -X PATCH -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" -d '{"body": "'"$RELEASE_REPORT"'"}' "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID"
   touch release.json
   curl -L -X POST -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=release-${GENERAL_VERSION}.json" -H "Content-Type: text/plain" --data-binary "@release.json"
-
 }
+
 # Determine the GENERAL_VERSION
 if [ -n "$INPUT_VERSION" ]; then
   GENERAL_VERSION="$INPUT_VERSION"
