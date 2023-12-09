@@ -16,7 +16,7 @@ upload_assets() {
   touch release.json
 
   # Upload release.json
-  curl -L -X POST -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=release-${GENERAL_VERSION}.json" -H "Content-Type: text/plain" --data-binary "@release.json"
+  curl -X PATCH -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=release.json" -H "Content-Type: text/plain" --data-binary "@release.json"
 
 }
 
