@@ -15,6 +15,7 @@ ASSET_NAME=release.json
 
 # Download existing asset (if exists)
 ASSET_ID=$(curl -L -s -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets | jq -r '.[] | select(.name == '\"$ASSET_NAME\"') | .id')
+echo "Debug: $metadata"
 
 if [[ ! -z "$ASSET_ID" ]]; then
   # Download and store existing data
