@@ -4,7 +4,7 @@ GITHUB_REF=$1
 GITHUB_REF_TYPE=$2
 GITHUB_TOKEN=$3
 INPUT_VERSION=$4
-GITHUB_REPOSITORY=Technobureau/demo
+#GITHUB_REPOSITORY=Technobureau/demo
 cd builders || exit 1
 result=""
 result1=""
@@ -70,4 +70,6 @@ echo "images=[$result]"
 echo "images_metadata={$result1}"
 echo "version=${GENERAL_VERSION}"
 
+if [ "$GITHUB_REF_TYPE" = "tag" ]; then
 upload_release_metadata "{$result1}"
+fi
