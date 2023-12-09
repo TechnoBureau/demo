@@ -60,10 +60,10 @@ curl -s -L -X DELETE \
   https://api.github.com/repos/$GITHUB_REPOSITORY/releases/assets/$ASSET_ID > /dev/null
 
 # Upload updated data as new asset
-# curl -s -L -X POST \
-#     -H "Authorization: Bearer $GITHUB_TOKEN" \
-#     -H "Content-Type: application/vnd.github+json" \
-#     --data-binary "@$ASSET_NAME" \
-#     https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=$ASSET_NAME > /dev/null
+curl -s -L -X POST \
+    -H "Authorization: Bearer $GITHUB_TOKEN" \
+    -H "Content-Type: application/vnd.github+json" \
+    --data-binary "@$ASSET_NAME" \
+    https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=$ASSET_NAME > /dev/null
 fi
 exit 0
