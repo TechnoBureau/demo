@@ -3,6 +3,7 @@
 GITHUB_REF=$1
 GITHUB_REF_TYPE=$2
 INPUT_VERSION=$3
+GITHUB_TOKEN="$4"
 
 cd builders || exit 1
 result=""
@@ -10,9 +11,10 @@ result1=""
 
 # Upload assets
 upload_assets() {
-  echo "Debug: $RELEASE_VERSION"
+  echo "Debug: $GENERAL_VERSION"
+  echo "Debug: $GITHUB_REPOSITORY"
 
-  RELEASE_ID=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_VERSION" | jq -r '.id')
+  RELEASE_ID=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$GENERAL_VERSION" | jq -r '.id')
 
   touch release.json
 
