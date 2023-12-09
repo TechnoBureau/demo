@@ -40,10 +40,10 @@ if [ -n "$INPUT_VERSION" ]; then
   GENERAL_VERSION="$INPUT_VERSION"
 elif [ "$GITHUB_REF" = "refs/heads/main" ]; then
   GENERAL_VERSION="${MAJOR}.${MINOR}.${FIX}"
-elif [ "$GITHUB_REF_TYPE" = "tag" ]; then
-  GENERAL_VERSION=$(echo "$GITHUB_REF" | sed 's/^v//')
+elif [[ "$GITHUB_REF" =~ "refs/tags/" ]]; then
+  GENERAL_VERSION=$(echo "${GITHUB_REF##refs/tags/}" | sed 's/^v//')
 else
-  GENERAL_VERSION="$GITHUB_REF"
+  GENERAL_VERSION="${GITHUB_REF##refs/heads/}"
 fi
 echo "general_version=${GENERAL_VERSION}"
 
@@ -70,6 +70,6 @@ echo "images=[$result]"
 echo "images_metadata={$result1}"
 echo "version=${GENERAL_VERSION}"
 
-if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+if [[ "$GITHUB_REF" =~ "refs/tags/" ]]; then
 upload_release_metadata "{$result1}"
 fi
