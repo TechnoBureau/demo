@@ -47,7 +47,9 @@ jobs:
       matrix:
         image: ${{ fromJson(needs.initialize.outputs.images) }}
       fail-fast: false
-
+    concurrency:
+      group: example-group
+      cancel-in-progress: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
