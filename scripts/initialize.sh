@@ -16,7 +16,7 @@ upload_release_metadata() {
 
   RELEASE_ID=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/$GENERAL_VERSION" | jq -r '.id')
 
-  ASSET_ID=$(curl -L -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets | jq -r '.[] | select(.name == '\"$ASSET_NAME\"') | .id')
+  ASSET_ID=$(curl -L -s -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets | jq -r '.[] | select(.name == '\"$ASSET_NAME\"') | .id')
 
   if [ -z "$ASSET_ID" ]; then
     curl -s -L -X POST \
@@ -25,7 +25,7 @@ upload_release_metadata() {
     --data-binary "@$ASSET_NAME" \
     https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=$ASSET_NAME
   else
-      # curl -L \
+      # curl -s -L \
       #   -X DELETE \
       #   -H "Accept: application/vnd.github+json" \
       #   -H "Authorization: Bearer $GITHUB_TOKEN" \

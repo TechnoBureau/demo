@@ -36,7 +36,7 @@ jobs:
       - name: Identify images
         id: identify-images
         run: |
-          ./scripts/initialize.sh ${{ github.ref }} ${{ github.ref_type }} ${{ secrets.GITHUB_TOKEN }} ${{ github.event.inputs.version }}
+          ./scripts/initialize.sh ${{ github.ref }} ${{ github.ref_type }} ${{ secrets.GITHUB_TOKEN }} ${{ github.event.inputs.version }} >> $GITHUB_OUTPUT
 
   BuildImages:
     runs-on: ubuntu-latest
