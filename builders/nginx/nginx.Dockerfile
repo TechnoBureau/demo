@@ -11,7 +11,7 @@ ENV HOME="/" \
 COPY prebuildfs /
 SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 # Install required system packages and dependencies
-RUN install_packages ca-certificates curl-minimal openssl procps
+RUN install_packages ca-certificates curl-minimal openssl procps tar
 RUN mkdir -p /tmp/technobureau/pkg/cache/ ; cd /tmp/technobureau/pkg/cache/ ; \
     COMPONENTS=( \
       "render-template-1.0.6-4-linux-${OS_ARCH}-debian-11" \
