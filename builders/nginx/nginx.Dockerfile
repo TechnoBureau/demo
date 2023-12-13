@@ -1,7 +1,7 @@
 # Copyright VMware, Inc.
 # SPDX-License-Identifier: APACHE-2.0
 
-FROM docker.io/bitnami/minideb:bullseye
+FROM registry.access.redhat.com/ubi9/ubi-minimal
 
 ENV HOME="/" \
     OS_ARCH="${TARGETARCH:-amd64}" \
@@ -26,9 +26,7 @@ RUN mkdir -p /tmp/technobureau/pkg/cache/ ; cd /tmp/technobureau/pkg/cache/ ; \
       tar -zxf "${COMPONENT}.tar.gz" -C /opt/technobureau --strip-components=2 --no-same-owner --wildcards '*/files' ; \
       rm -rf "${COMPONENT}".tar.gz{,.sha256} ; \
     done
-RUN apt-get autoremove --purge -y curl && \
-    apt-get update && apt-get upgrade -y && \
-    apt-get clean && rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
 RUN chmod g+rwX /opt/technobureau
 RUN ln -sf /dev/stdout /opt/technobureau/nginx/logs/access.log
 RUN ln -sf /dev/stderr /opt/technobureau/nginx/logs/error.log
