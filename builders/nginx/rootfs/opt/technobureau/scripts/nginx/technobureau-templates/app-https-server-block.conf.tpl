@@ -8,8 +8,8 @@ server {
 
     {{server_name_configuration}}
 
-    ssl_certificate      technobureau/certs/server.crt;
-    ssl_certificate_key  technobureau/certs/server.key;
+    ssl_certificate      certs/server.crt;
+    ssl_certificate_key  certs/server.key;
 
     {{acl_configuration}}
 
