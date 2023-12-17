@@ -655,4 +655,3 @@ run_chroot() {
         chroot --userspec="$userspec" / bash -c "cd ${cwd}; export HOME=${homedir}; exec \"\$@\"" -- "$@"
     fi
 }
-echo "HI"
