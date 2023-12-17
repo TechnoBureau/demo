@@ -17,4 +17,4 @@ set -o pipefail
 . /opt/technobureau/scripts/nginx-env.sh
 
 info "** Starting NGINX **"
-exec "${NGINX_SBIN_DIR}/nginx" -c "$NGINX_CONF_FILE" -g "daemon off;"
+exec "${NGINX_SBIN_DIR}/nginx" -c "$NGINX_CONF_FILE" -e "$NGINX_LOGS_DIR/error.log" -g "pid $NGINX_PID_FILE; daemon off;"
