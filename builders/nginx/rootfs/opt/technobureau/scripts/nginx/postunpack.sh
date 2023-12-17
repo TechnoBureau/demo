@@ -62,7 +62,7 @@ mv "${NGINX_BASE_DIR}/html" /app
 ln -sf /app "${NGINX_BASE_DIR}/html"
 
 # Users can mount their certificates at /certs
-"${NGINX_BASE_DIR}/technobureau/certs"
+mkdir -p "${NGINX_BASE_DIR}/technobureau/certs"
 mv "${NGINX_CONF_DIR}/technobureau/certs" /certs
 ln -sf /certs "${NGINX_CONF_DIR}/technobureau/certs"
 
