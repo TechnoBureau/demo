@@ -25,12 +25,12 @@ RUN /opt/technobureau/scripts/nginx/postunpack.sh
 ENV APP_VERSION="1.24.0" \
     TECHNOBUREAU_APP_NAME="nginx" \
     NGINX_HTTPS_PORT_NUMBER="" \
-    NGINX_HTTP_PORT_NUMBER="80" \
+    NGINX_HTTP_PORT_NUMBER="8080" \
     PATH="/opt/technobureau/common/bin:/opt/technobureau/nginx/sbin:/opt/technobureau/scripts/nginx/:$PATH"
 
-EXPOSE 80 443
+EXPOSE 8080 8443
 
-HEALTHCHECK CMD curl --fail http://localhost:80 || exit 1
+HEALTHCHECK CMD curl --fail http://localhost:8080 || exit 1
 
 WORKDIR /opt/technobureau
 USER 1001
