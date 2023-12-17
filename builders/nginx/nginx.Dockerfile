@@ -11,7 +11,7 @@ ENV HOME="/" \
 COPY prebuildfs /
 SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 # Install required system packages and dependencies
-RUN install_packages ca-certificates curl-minimal openssl procps tar
+RUN install_packages ca-certificates curl-minimal openssl procps tar findutils
 RUN curl -L https://download.opensuse.org/repositories/home:/ganapathi/UBI9/home:ganapathi.repo -o /etc/yum.repos.d/sag.repo
 RUN install_packages nginx-core nginx-mod-headers-more nginx-mod-http-sticky nginx-mod-http-sticky
 # RUN mkdir -p /tmp/technobureau/pkg/cache/ ; cd /tmp/technobureau/pkg/cache/ ; \
