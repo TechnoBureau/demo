@@ -28,7 +28,7 @@ RUN install_packages nginx-core nginx-mod-headers-more nginx-mod-http-sticky ngi
 #       tar -zxf "${COMPONENT}.tar.gz" -C /opt/technobureau --strip-components=2 --no-same-owner --wildcards '*/files' ; \
 #       rm -rf "${COMPONENT}".tar.gz{,.sha256} ; \
 #     done
-
+RUN mkdir -p /opt/technobureau/nginx/logs/ && touch /opt/technobureau/nginx/logs/{access,error}.log
 RUN chmod g+rwX /opt/technobureau
 RUN ln -sf /dev/stdout /opt/technobureau/nginx/logs/access.log
 RUN ln -sf /dev/stderr /opt/technobureau/nginx/logs/error.log
