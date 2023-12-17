@@ -5,7 +5,7 @@ FROM registry.access.redhat.com/ubi9/ubi-minimal
 
 ENV HOME="/" \
     OS_ARCH="${TARGETARCH:-amd64}" \
-    OS_FLAVOUR="debian-11" \
+    OS_FLAVOUR="ubi-9" \
     OS_NAME="linux"
 
 COPY prebuildfs /
@@ -14,20 +14,7 @@ SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 RUN install_packages ca-certificates curl-minimal openssl procps tar findutils
 RUN curl -L https://download.opensuse.org/repositories/home:/ganapathi/UBI9/home:ganapathi.repo -o /etc/yum.repos.d/sag.repo
 RUN install_packages nginx-core nginx-mod-headers-more nginx-mod-http-sticky nginx-mod-http-sticky
-# RUN mkdir -p /tmp/technobureau/pkg/cache/ ; cd /tmp/technobureau/pkg/cache/ ; \
-#     COMPONENTS=( \
-#       "render-template-1.0.6-4-linux-${OS_ARCH}-debian-11" \
-#       "nginx-1.25.3-1-linux-${OS_ARCH}-debian-11" \
-#     ) ; \
-#     for COMPONENT in "${COMPONENTS[@]}"; do \
-#       if [ ! -f "${COMPONENT}.tar.gz" ]; then \
-#         curl -SsLf "https://downloads.bitnami.com/files/stacksmith/${COMPONENT}.tar.gz" -O ; \
-#         curl -SsLf "https://downloads.bitnami.com/files/stacksmith/${COMPONENT}.tar.gz.sha256" -O ; \
-#       fi ; \
-#       sha256sum -c "${COMPONENT}.tar.gz.sha256" ; \
-#       tar -zxf "${COMPONENT}.tar.gz" -C /opt/technobureau --strip-components=2 --no-same-owner --wildcards '*/files' ; \
-#       rm -rf "${COMPONENT}".tar.gz{,.sha256} ; \
-#     done
+
 RUN mkdir -p /opt/technobureau/nginx/logs/ && touch /opt/technobureau/nginx/logs/{access,error}.log
 RUN chmod g+rwX /opt/technobureau
 RUN ln -sf /dev/stdout /opt/technobureau/nginx/logs/access.log
@@ -35,15 +22,16 @@ RUN ln -sf /dev/stderr /opt/technobureau/nginx/logs/error.log
 
 COPY nginx/rootfs /
 RUN /opt/technobureau/scripts/nginx/postunpack.sh
-ENV APP_VERSION="1.25.3" \
+ENV APP_VERSION="1.24.0" \
     TECHNOBUREAU_APP_NAME="nginx" \
     NGINX_HTTPS_PORT_NUMBER="" \
     NGINX_HTTP_PORT_NUMBER="" \
-    PATH="/opt/technobureau/common/bin:/opt/technobureau/nginx/sbin:$PATH"
+    PATH="/opt/technobureau/common/bin:/opt/technobureau/nginx/sbin:/opt/technobureau/scripts/nginx/:$PATH"
 
 EXPOSE 8080 8443
 
-WORKDIR /app
+WORKDIR /opt/technobureau
 USER 1001
+ENV HOME="/opt/technobureau"
 ENTRYPOINT [ "/opt/technobureau/scripts/nginx/entrypoint.sh" ]
 CMD [ "/opt/technobureau/scripts/nginx/run.sh" ]

@@ -39,7 +39,7 @@ stderr_print() {
 #   None
 #########################
 log() {
-    stderr_print "${CYAN}${MODULE:-} ${MAGENTA}$(date "+%T.%2N ")${RESET}${*}"
+    stderr_print "${CYAN}${MODULE:-} ${MAGENTA}$(date +"%Y-%m-%dT%H:%M:%S.%3N%Z ")${RESET}${*}"
 }
 ########################
 # Log an 'info' message

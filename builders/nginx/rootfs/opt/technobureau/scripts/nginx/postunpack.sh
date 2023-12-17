@@ -36,6 +36,8 @@ nginx_patch_httpoxy_vulnerability() {
 
 # Remove unnecessary directories that come with the tarball
 rm -rf "${TECHNOBUREAU_ROOT_DIR}/certs" "${TECHNOBUREAU_ROOT_DIR}/server_blocks"
+mkdir -p "${NGINX_BASE_DIR}/html"
+mkdir -p "${NGINX_BASE_DIR}/technobureau/certs"
 
 # Ensure non-root user has write permissions on a set of directories
 for dir in "$NGINX_VOLUME_DIR" "$NGINX_CONF_DIR" "$NGINX_INITSCRIPTS_DIR" "$NGINX_SERVER_BLOCKS_DIR" "${NGINX_CONF_DIR}/technobureau" "${NGINX_CONF_DIR}/technobureau/certs" "$NGINX_LOGS_DIR" "$NGINX_TMP_DIR"; do
@@ -57,13 +59,11 @@ nginx_configure_port "$NGINX_DEFAULT_HTTPS_PORT_NUMBER" "${TECHNOBUREAU_ROOT_DIR
 . /opt/technobureau/scripts/libfs.sh
 
 # Users can mount their html sites at /app
-mkdir -p "${NGINX_BASE_DIR}/html"
-mv "${NGINX_BASE_DIR}/html" /app
+mv "${NGINX_BASE_DIR}/html" /opt/technobureau/app
 ln -sf /app "${NGINX_BASE_DIR}/html"
 
 # Users can mount their certificates at /certs
-mkdir -p "${NGINX_BASE_DIR}/technobureau/certs"
-mv "${NGINX_CONF_DIR}/technobureau/certs" /certs
+mv "${NGINX_CONF_DIR}/technobureau/certs" /opt/technobureau/certs
 ln -sf /certs "${NGINX_CONF_DIR}/technobureau/certs"
 
 ln -sf "/dev/stdout" "${NGINX_LOGS_DIR}/access.log"
