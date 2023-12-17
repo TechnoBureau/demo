@@ -104,7 +104,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           file: ${{ matrix.image }}/${{ matrix.image }}.Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
 
       - name: Set image metadata
         id: set_metadata
