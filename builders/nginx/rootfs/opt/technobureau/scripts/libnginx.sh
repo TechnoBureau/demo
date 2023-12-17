@@ -642,7 +642,7 @@ nginx_custom_init_scripts() {
 #   None
 #########################
 nginx_generate_sample_certs() {
-    local certs_dir="${NGINX_CONF_DIR}/technobureau/certs"
+    local certs_dir="${NGINX_CONF_DIR}/certs"
 
     if ! is_boolean_yes "$NGINX_SKIP_SAMPLE_CERTS" && [[ ! -f "${certs_dir}/server.crt" ]]; then
         # Check certificates directory exists and is writable
