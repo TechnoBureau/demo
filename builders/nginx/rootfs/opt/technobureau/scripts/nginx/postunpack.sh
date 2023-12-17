@@ -57,10 +57,12 @@ nginx_configure_port "$NGINX_DEFAULT_HTTPS_PORT_NUMBER" "${TECHNOBUREAU_ROOT_DIR
 . /opt/technobureau/scripts/libfs.sh
 
 # Users can mount their html sites at /app
+mkdir -p "${NGINX_BASE_DIR}/html"
 mv "${NGINX_BASE_DIR}/html" /app
 ln -sf /app "${NGINX_BASE_DIR}/html"
 
 # Users can mount their certificates at /certs
+"${NGINX_BASE_DIR}/technobureau/certs"
 mv "${NGINX_CONF_DIR}/technobureau/certs" /certs
 ln -sf /certs "${NGINX_CONF_DIR}/technobureau/certs"
 
