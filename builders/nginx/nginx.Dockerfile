@@ -30,7 +30,7 @@ ENV APP_VERSION="1.24.0" \
 
 EXPOSE 8080 8443
 
-HEALTHCHECK CMD curl --fail http://localhost:8080 || exit 1
+HEALTHCHECK CMD curl --fail http://localhost:8080/status/ || exit 1
 
 WORKDIR /opt/technobureau
 USER 1001
