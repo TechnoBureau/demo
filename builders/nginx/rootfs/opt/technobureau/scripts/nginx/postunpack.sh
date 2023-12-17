@@ -37,7 +37,7 @@ nginx_patch_httpoxy_vulnerability() {
 # Remove unnecessary directories that come with the tarball
 rm -rf "${TECHNOBUREAU_ROOT_DIR}/certs" "${TECHNOBUREAU_ROOT_DIR}/server_blocks"
 mkdir -p "${NGINX_BASE_DIR}/html"
-mkdir -p "${NGINX_BASE_DIR}/certs"
+mkdir -p "${NGINX_CONF_DIR}/certs"
 
 # Ensure non-root user has write permissions on a set of directories
 for dir in "$NGINX_VOLUME_DIR" "$NGINX_CONF_DIR" "$NGINX_INITSCRIPTS_DIR" "$NGINX_SERVER_BLOCKS_DIR" "${NGINX_CONF_DIR}/technobureau" "${NGINX_CONF_DIR}/technobureau/certs" "$NGINX_LOGS_DIR" "$NGINX_TMP_DIR"; do
