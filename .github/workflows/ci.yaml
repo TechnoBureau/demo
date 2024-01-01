@@ -11,35 +11,38 @@ on:
       version:
         description: 'Custom version (optional)'
         required: false
+        default: "1.0.0"
+      images:
+        description: 'Selecting Images to be build (optional)'
+        required: false
+        default: "*"
 
 env:
-  REGISTRY: ghcr.io
-  MAJOR: 1
-  MINOR: 0
-  FIX: 0
+  REGISTRY: ${{ vars.REGISTRY || 'iregistry.eur.ad.sag' }}
+  ORG: ${{ vars.ORG || 'kub-sic' }}
+  VERSION: ${{ github.event.inputs.version || '1.0.0' }}
 
 jobs:
   initialize:
-    runs-on: ubuntu-latest
+    runs-on: webmdevops
     name: Initialize
     outputs:
       images: ${{ steps.identify-images.outputs.images }}
       images_metadata: ${{ steps.identify-images.outputs.images_metadata }}
-      version: ${{ steps.identify-images.outputs.version }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           submodules: recursive
 
       - name: Identify images
         id: identify-images
         run: |
-          ./scripts/initialize.sh ${{ github.ref }} ${{ secrets.GITHUB_TOKEN }} ${{ github.event.inputs.version }} >> $GITHUB_OUTPUT
+          ./scripts/initialize.sh '${{ github.ref }}' '${{ secrets.GITHUB_TOKEN }}' '${{ env.VERSION }}' '${{ github.event.inputs.images }}' >> $GITHUB_OUTPUT
 
   BuildImages:
-    runs-on: ubuntu-latest
+    runs-on: webmdevops
     needs: [initialize]
     if: success()
 
@@ -52,83 +55,108 @@ jobs:
     #   cancel-in-progress: false
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Extract image version
-        id: extract_version
+        id: extract_metadata
         run: |
-          ./scripts/get_image_version.sh '${{ needs.initialize.outputs.images_metadata }}' '${{ matrix.image }}' >> $GITHUB_OUTPUT
+          version=$(./scripts/get_image_property.sh '${{ needs.initialize.outputs.images_metadata }}' '${{ matrix.image }}' 'version')
+          platform=$(./scripts/get_image_property.sh '${{ needs.initialize.outputs.images_metadata }}' '${{ matrix.image }}' 'platform')
+          img_platform=$(./scripts/get_image_property.sh '${{ needs.initialize.outputs.images_metadata }}' '${{ matrix.image }}' 'platform' 'linux/')
+
+          echo "VERSION=$version" >> $GITHUB_OUTPUT
+          echo "platform=$platform" >> $GITHUB_OUTPUT
+          echo "img_platform=$img_platform" >> $GITHUB_OUTPUT
+
+          if [ "${{ matrix.image }}" != "ubi-builders" ]; then
+            echo "docker-builder=docker-image://${{ env.REGISTRY }}/${OWNER,,}/ubi-builders:latest" >> $GITHUB_OUTPUT
+          else
+            echo "docker-builder=." >> $GITHUB_OUTPUT
+          fi
+          echo "${{ secrets.ROOT_CA_BAS_EUR_AD_SAG }}" > ROOT_CA_BAS_EUR_AD_SAG.crt
+        env:
+            OWNER: '${{ env.ORG }}'
 
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v4
         with:
-          images: ${{ env.REGISTRY }}/${{github.repository_owner}}/${{ matrix.image }}
+          images: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.image }}
           flavor: latest=true
           tags: |
-            type=raw,enable=true,priority=200,prefix=,suffix=,value=${{ steps.extract_version.outputs.VERSION }}.${{ github.run_number }}
+            type=raw,enable=true,priority=200,prefix=,suffix=,value=${{ steps.extract_metadata.outputs.VERSION }}.${{ github.run_number }}
           labels: |
-            maintainer=${{github.repository_owner}}
-            name=${{github.repository_owner}}/${{ matrix.image }}
-            io.k8s.display-name=${{github.repository_owner}}/${{ matrix.image }}
-            version=${{ steps.extract_version.outputs.VERSION }}
-            org.opencontainers.image.title=${{github.repository_owner}}/${{ matrix.image }}
-            org.opencontainers.image.version=${{ steps.extract_version.outputs.VERSION }}.${{ github.run_number }}
-            org.opencontainers.image.description=${{github.repository_owner}}/${{ matrix.image }}
+            maintainer=${{ env.ORG }}
+            name=${{ env.ORG }}/${{ matrix.image }}
+            io.k8s.display-name=${{ env.ORG }}/${{ matrix.image }}
+            version=${{ steps.extract_metadata.outputs.VERSION }}
+            org.opencontainers.image.title=${{ env.ORG }}/${{ matrix.image }}
+            org.opencontainers.image.version=${{ steps.extract_metadata.outputs.VERSION }}.${{ github.run_number }}
+            org.opencontainers.image.description=${{ env.ORG }}/${{ matrix.image }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: 'arm64,arm'
+      # Disabled for Local WSL as actions-runner. it can be enabled for actual runner
+      # - name: Set up QEMU
+      #   uses: docker/setup-qemu-action@v2
+      #   with:
+      #     platforms: ${{ steps.extract_metadata.outputs.platform }}
 
       - name: Setup Docker buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v2
+        with:
+          config-inline: |
+            [registry."iregistry.eur.ad.sag"]
+              ca=["ROOT_CA_BAS_EUR_AD_SAG.crt"]
+
 
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.REGISTRYORGUSER }}
+          password: ${{ secrets.REGISTRYORGPASS }}
 
       - name: Build and push Docker image
         id: build-and-push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v4
         with:
           context: "{{defaultContext}}:builders"
+          # build-contexts: |
+          #   docker-builder=${{ steps.extract_metadata.outputs.docker-builder }}
           push: ${{ github.event_name != 'pull_request' }}
           provenance: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
+          cache-from: type=gha,mode=max
           cache-to: type=gha,mode=max
           file: ${{ matrix.image }}/${{ matrix.image }}.Dockerfile
-          platforms: linux/amd64
+          platforms: ${{ steps.extract_metadata.outputs.img_platform }}
+          secrets: |
+            "ROOT_CA_BAS_EUR_AD_SAG=${{ secrets.ROOT_CA_BAS_EUR_AD_SAG }}"
+
 
       - name: Set image metadata
         id: set_metadata
         run: |
           IMAGE_NAME="${{ matrix.image }}"
-          BUILD_TAG="${{ steps.extract_version.outputs.VERSION }}.${{ github.run_number }}"
+          BUILD_TAG="${{ steps.extract_metadata.outputs.VERSION }}.${{ github.run_number }}"
           IMAGE_ID=$(echo "${{ steps.build-and-push.outputs.imageID }}" | sed 's/^sha256://' | cut -c1-12)
           CREATED=$(echo "$DOCKER_METADATA_OUTPUT_JSON" | jq -r '.labels."org.opencontainers.image.created"')
 
           result="{ \"$IMAGE_NAME\": { \"BUILD_TAG\":\"$BUILD_TAG\",\"IMAGE_ID\":\"$IMAGE_ID\",\"CREATED\":\"$CREATED\" } }"
-          ./scripts/set_image_metadata.sh "$result" '${{ needs.initialize.outputs.version }}' '${{ secrets.GITHUB_TOKEN }}'
+          ./scripts/set_image_metadata.sh "$result" '${{ env.VERSION }}' '${{ secrets.GITHUB_TOKEN }}'
 
   GenerateImageReleaseReport:
-    name: Generate image release - ${{ needs.initialize.outputs.version }}
-    runs-on: ubuntu-latest
-    needs: [initialize, BuildImages]
+    name: Generate image release
+    runs-on: webmdevops
+    needs: [BuildImages]
     if: success()
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Generate images release report
         id: generate_release
         run: |
-          ./scripts/generate_release_report.sh '${{ needs.initialize.outputs.version }}' '${{ secrets.GITHUB_TOKEN }}' >> $GITHUB_STEP_SUMMARY
-
+          ./scripts/generate_release_report.sh '${{ env.VERSION }}' '${{ secrets.GITHUB_TOKEN }}' >> $GITHUB_STEP_SUMMARY

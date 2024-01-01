@@ -55,8 +55,20 @@ pipeline {
             steps {
                 script {
                     dir("${LINK_DIR}") {
-                        echo "Building"
-                        // Your build steps go here
+                    // Run the initialization script and capture the output
+                    def scriptOutput = sh(script: "./scripts/initialize.sh 'ref/head/main' '' '1.0.0' '*'", returnStdout: true).trim()
+
+                    // Parse key-value pairs from the script output
+                    def imagesKeyValue = scriptOutput =~ /images=\[(.*?)\]/
+                    def images_metadataKeyValue = scriptOutput =~ /images_metadata=\{(.*?)\}/
+
+                    // Extract values from the matches
+                    def images = imagesKeyValue ? imagesKeyValue[0][1] : null
+                    def images_metadata = images_metadataKeyValue ? images_metadataKeyValue[0][1] : null
+
+                    // Now you can use 'images' and 'images_metadata' in your pipeline
+                    echo "Parsed Images: ${images}"
+                    echo "Parsed Images Metadata: ${images_metadata}"
                     }
                 }
             }
