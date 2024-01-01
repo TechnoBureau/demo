@@ -1,2 +1,3 @@
 # bic_devops
-DevOps WMIO - Docker Image 
+DevOps WMIO - Docker Image
+
