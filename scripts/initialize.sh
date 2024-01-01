@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -ex
+set -e
 source "$(dirname "${BASH_SOURCE[0]}")/common_libs.sh"
 
 GITHUB_REF=$1

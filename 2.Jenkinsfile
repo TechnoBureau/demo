@@ -63,7 +63,7 @@ pipeline {
                     dir("${LINK_DIR}") {
                     // Run the initialization script and capture the output
                     def scriptOutput = sh(script: '''
-                        ./scripts/initialize.sh "'${GITHUB_REF}'" "'${GITHUB_TOKEN}'" "'${VERSION}'" "'${IMAGES}'"
+                        ./scripts/initialize.sh "${GITHUB_REF}" "${GITHUB_TOKEN}" "${VERSION}" "${IMAGES}"
                     ''', returnStdout: true).trim()
 
 
