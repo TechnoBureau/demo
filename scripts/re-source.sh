@@ -14,7 +14,9 @@ done
 Replace() {
 grep -rl "$1" . | grep -v $me | xargs sed -i '' -e s@"$1"@"$2"@g
 }
-RenameFiles bitnami technobureau
-Replace bitnami technobureau
-Replace Bitnami Technobureau
-Replace BITNAMI TECHNOBUREAU
+RenameFiles softwareag technobureau
+Replace softwareag technobureau
+Replace SoftwareAG TechnoBureau
+Replace sagadmin tbadmin
+Replace Softwareag Technobureau
+Replace SOFTWAREAG TECHNOBUREAU

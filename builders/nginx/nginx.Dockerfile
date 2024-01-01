@@ -1,13 +1,14 @@
 # Copyright VMware, Inc.
 # SPDX-License-Identifier: APACHE-2.0
 
+ARG VERSION=1.24.0
+
 FROM registry.access.redhat.com/ubi9/ubi-minimal
 
 ENV HOME="/" \
-    OS_ARCH="${TARGETARCH:-amd64}" \
     OS_FLAVOUR="ubi-9" \
     OS_NAME="linux"
-
+ENV OS_ARCH=amd64
 COPY prebuildfs /
 SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
 # Install required system packages and dependencies
@@ -33,7 +34,7 @@ EXPOSE 8080 8443
 HEALTHCHECK CMD curl --fail http://localhost:8080/status/ || exit 1
 
 WORKDIR /opt/technobureau
-USER 1001
+USER 1724
 ENV HOME="/opt/technobureau"
 ENTRYPOINT [ "/opt/technobureau/scripts/nginx/entrypoint.sh" ]
 CMD [ "/opt/technobureau/scripts/nginx/run.sh" ]

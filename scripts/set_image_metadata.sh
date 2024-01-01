@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+set -e
 # Usage: generate_release_report.sh <images_metadata_json> <release_version> <github_token>
 source "$(dirname "${BASH_SOURCE[0]}")/common_libs.sh"
 

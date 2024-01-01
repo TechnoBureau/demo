@@ -3,14 +3,15 @@
 # SPDX-License-Identifier: APACHE-2.0
 set -eu
 
+CHROOT=${CHROOT:-"/mnt/rootfs"}
+
 n=0
 max=2
 
 until [ $n -gt $max ]; do
     set +e
     (
-      microdnf update -y &&
-      microdnf install -y --setopt install_weak_deps=0 --nodocs "$@"
+      microdnf install -y --setopt install_weak_deps=0 --nodocs --noplugins --config=/etc/dnf/dnf.conf --setopt=cachedir="$CHROOT/var/cache/yum" --setopt=reposdir=/etc/yum.repos.d --setopt=varsdir=/etc/dnf --releasever=9 --installroot $CHROOT "$@"
     )
     CODE=$?
     set -e
@@ -23,4 +24,3 @@ until [ $n -gt $max ]; do
     echo "microdnf failed, retrying"
     n=$(($n + 1))
 done
-microdnf clean all && rm -rf /var/cache/* /var/log/dnf* /var/log/yum.*

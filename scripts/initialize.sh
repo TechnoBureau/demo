@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
-
+set -e
 source "$(dirname "${BASH_SOURCE[0]}")/common_libs.sh"
 
 GITHUB_REF=$1
 GITHUB_TOKEN=$2
 INPUT_VERSION=$3
+IMAGE_INPUT=$4
 ASSET_NAME=release.json
 cd "$(dirname "${BASH_SOURCE[0]}")/../builders" || exit 1
 
 get_version() {
   if [[ -n "$INPUT_VERSION" ]]; then
     echo "$INPUT_VERSION"
-  elif [[ "$GITHUB_REF" = "refs/heads/main" ]]; then
-    echo "${MAJOR:-1}.${MINOR:-0}.${FIX:-0}"
+  # elif [[ "$GITHUB_REF" = "refs/heads/main" ]]; then
+  #   echo "${INPUT_VERSION:-1.0.0}"
   elif [[ "$GITHUB_REF" =~ "refs/tags/" ]]; then
     echo "${GITHUB_REF##refs/tags/}" | sed 's/^v//'
   else
@@ -23,7 +24,18 @@ get_version() {
 GENERAL_VERSION=$(get_version)
 
 images_metadata=""
-for d in *; do
+if [ -z "$IMAGE_INPUT" ] || [ "$IMAGE_INPUT" = "*" ]; then
+    # If empty, use * to get all files under a folder
+  IMAGE_LIST=$(find . -maxdepth 1 -type d -not -name '.*' -exec basename {} \; | tr '\n' ',' | sed 's/,$//')
+else
+  IMAGE_LIST=$(echo "$IMAGE_INPUT" | tr ' ' ',')
+  IMAGE_LIST=$(echo "$IMAGE_INPUT" | tr -cd '[:alnum:],*-')
+fi
+IFS=', '
+
+read -a image_array <<< "$IMAGE_LIST"
+
+for d in "${image_array[@]}"; do
   if is_valid_image_dir "$d"; then
     image_data=$(get_image_data "$d")
     images_metadata+="${images_metadata:+,}$image_data"
@@ -41,6 +53,5 @@ fi
 
 echo "images=[$images]"
 echo "images_metadata={$images_metadata}"
-echo "version=${GENERAL_VERSION}"
 
 exit 0
