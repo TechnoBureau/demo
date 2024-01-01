@@ -19,7 +19,7 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'RELEASE_VERSION', description: 'Enter the release version (e.g., 1.0.0)', defaultValue: '1.0.0')
+      string(name: 'IMAGES', description: 'Specify the images')
     }
 
     environment {
@@ -27,6 +27,12 @@ pipeline {
         COMMON_DIR = "${env.JENKINS_HOME}/repo"
         VERSION_DIR = "${COMMON_DIR}/repo_${params.RELEASE_VERSION}"
         LINK_DIR = "${WORKSPACE}/repo"
+        GITHUB_REF = "ref/head/main"
+        GITHUB_TOKEN = credentials('GITHUB_TOKEN')
+        VERSION = "1.0.0"
+        IMAGES = "*"
+        IMAGES_METADATA = null
+
     }
 
     stages {
@@ -56,20 +62,32 @@ pipeline {
                 script {
                     dir("${LINK_DIR}") {
                     // Run the initialization script and capture the output
-                    def scriptOutput = sh(script: "./scripts/initialize.sh 'ref/head/main' '' '1.0.0' '*'", returnStdout: true).trim()
+                    def scriptOutput = sh(script: '''
+                        ./scripts/initialize.sh "'${GITHUB_REF}'" "'${GITHUB_TOKEN}'" "'${VERSION}'" "'${IMAGES}'"
+                    ''', returnStdout: true).trim()
+
 
                     // Parse key-value pairs from the script output
-                    def imagesKeyValue = scriptOutput =~ /images=\[(.*?)\]/
-                    def images_metadataKeyValue = scriptOutput =~ /images_metadata=\{(.*?)\}/
+                    def imagesKeyValue = scriptOutput =~ /images=(.*)/
+                    def images_metadataKeyValue = scriptOutput =~ /images_metadata=(.*)/
 
                     // Extract values from the matches
-                    def images = imagesKeyValue ? imagesKeyValue[0][1] : null
-                    def images_metadata = images_metadataKeyValue ? images_metadataKeyValue[0][1] : null
+                    IMAGES = imagesKeyValue ? imagesKeyValue[0][1].trim() : null
+                    IMAGES_METADATA = images_metadataKeyValue ? images_metadataKeyValue[0][1].trim() : null
 
                     // Now you can use 'images' and 'images_metadata' in your pipeline
-                    echo "Parsed Images: ${images}"
-                    echo "Parsed Images Metadata: ${images_metadata}"
+                    echo "Parsed Images: ${IMAGES}"
+                    echo "Parsed Images Metadata: ${IMAGES_METADATA}"
                     }
+                }
+            }
+        }
+        stage('Use Images in Another Stage') {
+            steps {
+                script {
+                    // Now you can use 'IMAGES' and 'IMAGES_METADATA' in subsequent stages or steps
+                    echo "Using Images in Another Stage: ${IMAGES}"
+                    echo "Using Images Metadata in Another Stage: ${IMAGES_METADATA}"
                 }
             }
         }
