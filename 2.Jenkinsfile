@@ -15,6 +15,32 @@ def checkoutRepository(branch, dir) {
     sh "ln -s ${dir} ${LINK_DIR}"
 }
 
+// def buildImage(imageName, imageDetails) {
+//     echo "Building Image: ${imageName}"
+//     echo "Version: ${imageDetails.version}"
+//     echo "Platform: ${imageDetails.platform}"
+
+//     def dockerLabels = [
+//         "io.k8s.display-name=kub-sic/${imageName}",
+//         "maintainer=kub-sic",
+//         "name=${imageName}",
+//         "org.opencontainers.image.created=${BUILD_TIMESTAMP}",
+//         "org.opencontainers.image.description=${imageName}",
+//         "org.opencontainers.image.licenses=",
+//         "org.opencontainers.image.source=https://github.softwareag.com/AIM/bic_devops",
+//         "org.opencontainers.image.title=${imageName}",
+//         "org.opencontainers.image.url=https://github.softwareag.com/AIM/bic_devops",
+//         "org.opencontainers.image.version=${imageDetails.version}",
+//         "version=${imageDetails.version}"
+//     ]
+
+//     // Use nonCPS for the sh step
+//     nonCPS {
+//         sh '''
+//             echo "HI"
+//         '''
+//     }
+// }
 pipeline {
   agent any
 
@@ -32,6 +58,7 @@ pipeline {
       VERSION = "1.0.0"
       IMAGES = "${params.IMAGES}"
       IMAGES_METADATA = null
+      BUILD_TIMESTAMP = sh(script: 'date -u --iso-8601=seconds', returnStdout: true).trim()
 
   }
 
@@ -80,24 +107,40 @@ pipeline {
       }
     }
     stage('Build') {
-      steps {
+    steps {
         script {
-          // Use a script block to dynamically generate the matrix values
-          def imagesMetadata = new groovy.json.JsonSlurper().parseText("${IMAGES_METADATA}")
-          // Iterate through each image in the metadata
-          imagesMetadata.each { imageName, imageDetails ->
-              // Execute steps for each image
-              echo "Building Image: ${imageName}"
-              echo "Version: ${imageDetails.version}"
-              echo "Platform: ${imageDetails.platform}"
+            def imagesMetadata = new groovy.json.JsonSlurper().parseText("${IMAGES_METADATA}")
 
-              // Add your build steps here based on the image metadata
-              // For example, you might want to build the image using Docker
-              // docker.build("your-registry/${imageName}:${imageDetails.version}")
-          }
+            // Iterate through each image in the metadata
+            imagesMetadata.each { imageName, imageDetails ->
+                // Execute steps for each image
+                echo "Building Image: ${imageName}"
+                echo "Version: ${imageDetails.version}"
+                echo "Platform: ${imageDetails.platform}"
+
+                def dockerLabels = [
+                    "io.k8s.display-name=kub-sic/${imageName}",
+                    "maintainer=kub-sic",
+                    "name=${imageName}",
+                    "org.opencontainers.image.created=${BUILD_TIMESTAMP}",
+                    "org.opencontainers.image.description=${imageName}",
+                    "org.opencontainers.image.licenses=",
+                    "org.opencontainers.image.source=https://github.softwareag.com/AIM/bic_devops",
+                    "org.opencontainers.image.title=${imageName}",
+                    "org.opencontainers.image.url=https://github.softwareag.com/AIM/bic_devops",
+                    "org.opencontainers.image.version=${imageDetails.version}",
+                    "version=${imageDetails.version}"
+                ]
+
+                // sh block is allowed directly within a script block
+                sh '''
+                    echo "HI"
+                '''
+            }
         }
-      }
     }
+}
+
   }
 
   post {
